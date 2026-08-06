@@ -186,9 +186,14 @@ body.done .scroll-hint{opacity:1}
 @keyframes pull{0%{transform:scaleX(0)}55%{transform:scaleX(1)}100%{transform:scaleX(0);transform-origin:right}}
 
 /* ============ REVEAL ============ */
-.rv{opacity:0;transform:translateY(30px);transition:opacity .9s ease,transform .9s var(--ease)}
+/* Base state is VISIBLE. If JS never runs, or fails before it can flag itself,
+   nothing is ever hidden — the photographs are not gated behind a script. */
+.rv{opacity:1;transform:none;transition:opacity .9s ease,transform .9s var(--ease)}
+.clip{clip-path:inset(0 0 0 0);transition:clip-path 1.15s var(--ease)}
+/* Hiding is opt-in, gated on html.js-anim (added by an inline script in <head>). */
+.js-anim .rv:not(.in){opacity:0;transform:translateY(30px)}
+.js-anim .clip:not(.in){clip-path:inset(100% 0 0 0)}
 .rv.in{opacity:1;transform:none}
-.clip{clip-path:inset(100% 0 0 0);transition:clip-path 1.15s var(--ease)}
 .clip.in{clip-path:inset(0 0 0 0)}
 
 /* ============ STATEMENT ============ */
@@ -364,6 +369,12 @@ footer{
   .wordmark span i{transform:none!important}
 }
 </style>
+<script>
+/* Opt in to reveal animations only once we know JS is alive. This runs in <head>,
+   before first paint, so there is no flash of hidden-then-shown content. If it
+   never executes, the base CSS above leaves every element visible. */
+document.documentElement.classList.add('js-anim');
+</script>
 </head>
 <body>
 
@@ -828,9 +839,23 @@ footer{
 
   /* ---------- reveals ---------- */
   var io = new IntersectionObserver(function(es){
-    es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+    es.forEach(function(e){ if(e.isIntersecting){ reveal(e.target); } });
   }, {threshold:.12, rootMargin:'0px 0px -6% 0px'});
-  function observe(){ document.querySelectorAll('.rv:not(.in),.clip:not(.in)').forEach(function(el){ io.observe(el); }); }
+
+  function reveal(el){ el.classList.add('in'); io.unobserve(el); }
+  function pending(){ return document.querySelectorAll('.rv:not(.in),.clip:not(.in)'); }
+
+  function observe(){
+    pending().forEach(function(el){
+      io.observe(el);
+      /* Anything already within the viewport at attach time reveals straight away,
+         rather than waiting on the observer's first callback. */
+      if(el.getBoundingClientRect().top < window.innerHeight) reveal(el);
+    });
+    /* Hard safety net. Whatever the observer does or fails to do — suspended in a
+       background tab, never firing, unsupported — content is never left hidden. */
+    setTimeout(function(){ pending().forEach(reveal); }, 2500);
+  }
 
   /* ---------- work grid ---------- */
   var CATS = [
@@ -860,9 +885,10 @@ footer{
     visible = PHOTOS.filter(function(p){ return p.cat !== 'print' && (current==='all' || p.cat===current); });
     visible.forEach(function(p, idx){
       var d = document.createElement('div');
-      d.className = 'card clip';
+      d.className = 'card';
       d.innerHTML =
-        '<figure><img loading="lazy" width="'+p.w+'" height="'+p.h+'" src="'+p.src+'" alt="'+p.label+'">'+
+        /* clip lives on the figure, not the card, so the caption is never clipped */
+        '<figure class="clip"><img loading="lazy" width="'+p.w+'" height="'+p.h+'" src="'+p.src+'" alt="'+p.label+'">'+
         '<div class="veil"></div><div class="plus">+</div></figure>'+
         '<figcaption><b>'+p.label+'</b><s>'+p.tag+'</s></figcaption>';
       d.addEventListener('click', function(){ openLB(idx); });
