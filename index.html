@@ -12,6 +12,11 @@
 <title>Original Brave Shots — Précieux Tchibozo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Preload only what the hero paints: Bodoni Moda 400 (wordmark) and Archivo 400
+     (eyebrow/sub). Both families ship as variable fonts, so these two latin files
+     cover every weight the page uses. The URL already carries display=swap. -->
+<link rel="preload" as="font" type="font/woff2" crossorigin href="https://fonts.gstatic.com/s/bodonimoda/v28/aFTQ7PxzY382XsXX63LUYJSKSKjWXFBP.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="https://fonts.gstatic.com/s/archivo/v25/k3kPo8UDI-1M0wlSV9XAw6lQkqWY8Q82sLydOxKsv4Rn.woff2">
 <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;0,6..96,700;1,6..96,400&family=Archivo:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -222,19 +227,29 @@ body.done .scroll-hint{opacity:1}
 }
 .card figure{position:relative;overflow:hidden}
 .card img{width:100%;transition:transform 1.1s var(--ease),filter .6s ease}
-.card:hover img{transform:scale(1.045)}
 .card .veil{
   position:absolute;inset:0;background:linear-gradient(to top,rgba(20,16,14,.85),transparent 52%);
   opacity:0;transition:opacity .5s ease;
 }
-.card:hover .veil{opacity:1}
+/* Hover effects exist only where there is a real pointer. On touch a tap would
+   otherwise leave these stuck on until the next tap elsewhere. */
+@media(hover:hover){
+  .card:hover img{transform:scale(1.045)}
+  .card:hover .veil{opacity:1}
+}
+/* Touch: the veil is always on, so every photo reads as labelled without interaction. */
+@media(hover:none){
+  .card .veil{opacity:1}
+}
 .card .plus{
   position:absolute;top:14px;right:14px;width:30px;height:30px;
   border:1px solid rgba(239,231,219,.5);border-radius:50%;
   display:grid;place-items:center;font-size:14px;color:var(--bone);
   opacity:0;transform:scale(.7);transition:all .45s var(--ease);
 }
-.card:hover .plus{opacity:1;transform:scale(1)}
+@media(hover:hover){
+  .card:hover .plus{opacity:1;transform:scale(1)}
+}
 .card figcaption{
   display:flex;justify-content:space-between;gap:12px;
   padding:11px 2px 0;font-size:10px;letter-spacing:.16em;text-transform:uppercase;
@@ -334,7 +349,10 @@ footer{
   font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--dim);
 }
 #lb .meta s{text-decoration:none;color:var(--brass)}
-#lb .x{position:absolute;top:22px;right:26px;font-size:11px;letter-spacing:.24em;text-transform:uppercase}
+#lb .x{
+  position:absolute;top:22px;right:26px;font-size:11px;letter-spacing:.24em;text-transform:uppercase;
+  min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:flex-end;
+}
 #lb .nav{
   position:absolute;top:50%;transform:translateY(-50%);
   width:46px;height:46px;border:1px solid var(--line);border-radius:50%;
@@ -353,8 +371,14 @@ footer{
 }
 @media(max-width:680px){
   #grid{columns:1}
-  .tript{grid-template-columns:1fr}
-  .tript .panel:nth-child(2),.tript .panel:nth-child(3){display:none}
+  /* Triptych becomes three horizontal bands stacked in the same 100svh.
+     All three panels stay visible and keep cycling on their offset timers. */
+  .tript{grid-template-columns:1fr;grid-template-rows:repeat(3,1fr)}
+  /* Portrait sources in a wide, short band crop through the face at dead centre;
+     bias the crop upward so heads stay in frame. */
+  .panel img{object-position:center 35%}
+  /* 44px minimum tap targets */
+  .filters button{padding:14px 20px;min-height:44px;display:inline-flex;align-items:center}
   .svc{grid-template-columns:1fr}
   .cols{grid-template-columns:1fr}
   .contact-rows{grid-template-columns:1fr}
@@ -796,12 +820,27 @@ document.documentElement.classList.add('js-anim');
   ];
   var byId = {}; PHOTOS.forEach(function(p){ byId[p.id]=p; });
 
+  /* Responsive variants are derived from the existing src, so the PHOTOS array is
+     untouched. The large descriptor uses p.w — the files are 720-973px wide, not a
+     uniform 1000px, and a wrong w descriptor makes the browser pick the wrong file. */
+  function smallOf(src){ return src.replace(/\.webp$/, '-sm.webp'); }
+  function srcsetOf(p){ return smallOf(p.src) + ' 500w, ' + p.src + ' ' + p.w + 'w'; }
+
   function startPanels(){
     document.querySelectorAll('.panel').forEach(function(panel,ci){
       var ids = HERO[ci]||[];
       var imgs = ids.map(function(id){
         var im = new Image();
-        im.src = byId[id] ? byId[id].src : '';
+        var p = byId[id];
+        /* sizes and srcset must be set before src, or the browser resolves a
+           candidate before it knows the layout width. */
+        if(p){
+          im.sizes = '(max-width: 680px) 100vw, 33vw';
+          im.srcset = srcsetOf(p);
+          im.src = p.src;
+        } else {
+          im.src = '';
+        }
         im.alt = '';
         panel.appendChild(im);
         return im;
@@ -888,7 +927,10 @@ document.documentElement.classList.add('js-anim');
       d.className = 'card';
       d.innerHTML =
         /* clip lives on the figure, not the card, so the caption is never clipped */
-        '<figure class="clip"><img loading="lazy" width="'+p.w+'" height="'+p.h+'" src="'+p.src+'" alt="'+p.label+'">'+
+        '<figure class="clip"><img loading="lazy" width="'+p.w+'" height="'+p.h+'" '+
+          'src="'+p.src+'" srcset="'+srcsetOf(p)+'" '+
+          'sizes="(max-width: 680px) 100vw, (max-width: 1020px) 50vw, 33vw" '+
+          'alt="'+p.label+'">'+
         '<div class="veil"></div><div class="plus">+</div></figure>'+
         '<figcaption><b>'+p.label+'</b><s>'+p.tag+'</s></figcaption>';
       d.addEventListener('click', function(){ openLB(idx); });
@@ -916,8 +958,16 @@ document.documentElement.classList.add('js-anim');
 
   /* ---------- fixed images ---------- */
   var pr = byId['p02'], po = byId['p24'];
-  if(pr) document.getElementById('printimg').src = pr.src;
-  if(po) document.getElementById('portrait').src = po.src;
+  /* Both sit in a grid that collapses to one column at 1020px. */
+  function setFixed(elId, p){
+    if(!p) return;
+    var el = document.getElementById(elId);
+    el.sizes = '(max-width: 1020px) 100vw, 50vw';
+    el.srcset = srcsetOf(p);
+    el.src = p.src;
+  }
+  setFixed('printimg', pr);
+  setFixed('portrait', po);
 
   /* ---------- lightbox ---------- */
   var lb=document.getElementById('lb'), lbi=document.getElementById('lbi'), lbm=document.getElementById('lbm');
@@ -929,6 +979,8 @@ document.documentElement.classList.add('js-anim');
   function paint(){
     var p = visible[cur]; if(!p) return;
     lb.classList.remove('ready');
+    /* Full-screen view always gets the large file — never the 500px variant. */
+    lbi.removeAttribute('srcset');
     lbi.src = p.src;
     lbm.innerHTML = p.label + ' &nbsp;<s>' + p.tag + '</s>';
     requestAnimationFrame(function(){ setTimeout(function(){ lb.classList.add('ready'); }, 20); });
@@ -940,6 +992,19 @@ document.documentElement.classList.add('js-anim');
   document.getElementById('lbp').addEventListener('click', function(e){ e.stopPropagation(); step(-1); });
   document.getElementById('lbn').addEventListener('click', function(e){ e.stopPropagation(); step(1); });
   lb.addEventListener('click', function(e){ if(e.target === lb) closeLB(); });
+
+  /* Swipe: horizontal travel over 50px steps through photos. Mostly-vertical
+     swipes are ignored so scrolling is unaffected. Listeners are passive —
+     they never call preventDefault, so they cannot block scrolling. */
+  var tsX = 0, tsY = 0;
+  lb.addEventListener('touchstart', function(e){
+    var t = e.changedTouches[0]; tsX = t.clientX; tsY = t.clientY;
+  }, {passive:true});
+  lb.addEventListener('touchend', function(e){
+    var t = e.changedTouches[0];
+    var dx = t.clientX - tsX, dy = t.clientY - tsY;
+    if(Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) step(dx < 0 ? 1 : -1);
+  }, {passive:true});
   document.addEventListener('keydown', function(e){
     if(!lb.classList.contains('on')) return;
     if(e.key === 'Escape') closeLB();
