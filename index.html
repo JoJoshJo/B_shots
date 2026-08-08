@@ -167,27 +167,36 @@ body.nav-open #overlay a{transform:translateY(0)}
   background:rgba(30,24,21,.5);backdrop-filter:blur(8px);
   padding:8px 18px;font-size:10px;letter-spacing:.26em;
   text-transform:uppercase;color:var(--dim);margin-bottom:26px;
-  opacity:0;transform:translateY(10px);
 }
 #hero h1{
   font-family:var(--display);font-weight:400;
   font-size:clamp(46px,8.5vw,104px);line-height:.98;letter-spacing:-.01em;
 }
-#hero h1 .w{display:inline-block;opacity:0;transform:translateY(14px)}
+#hero h1 .w{display:inline-block}
 #hero h1 .brass{color:var(--brass)}
 .desc{
   margin-top:26px;max-width:44ch;font-size:15.5px;line-height:1.75;
-  color:var(--dim);opacity:0;transform:translateY(10px);
+  color:var(--dim);
 }
 .cta{
   margin-top:32px;padding:14px 34px;border-radius:100px;
   background:var(--brass);color:#1A1206;font-weight:500;
   font-size:11px;letter-spacing:.22em;text-transform:uppercase;
   transition:transform .3s var(--ease),background .3s ease;
-  opacity:0;
 }
 .cta:hover{transform:scale(1.045);background:#D9A94E}
 .cta:active{transform:scale(.97)}
+
+/* Hidden state is opt-in, gated on html.js-anim exactly like .rv/.clip. If JS never
+   runs, the hero copy is visible rather than stranded at opacity:0. The translateY
+   values ride the same gate so nothing shifts when JS is on. .cta takes opacity only —
+   it has no entrance offset, and a translate here would fight its hover scale. */
+.js-anim .pill,
+.js-anim .desc,
+.js-anim .cta,
+.js-anim #hero h1 .w{opacity:0}
+.js-anim .pill,.js-anim .desc{transform:translateY(10px)}
+.js-anim #hero h1 .w{transform:translateY(14px)}
 
 /* entrance animations fire only after the overture lifts */
 body.done .pill{animation:fadeUp .8s var(--ease) .1s forwards}
@@ -426,6 +435,11 @@ footer{
   .client .tag{grid-column:2}
   #lb .nav{width:38px;height:38px}
   #lb .prev{left:6px}#lb .next{right:6px}
+}
+/* Short viewports: lift the copy and shrink the band so the CTA clears the frames. */
+@media(max-height:820px){
+  .hero-inner{margin-top:-10vh}
+  .marquee{height:34%}
 }
 @media(prefers-reduced-motion:reduce){
   *{transition-duration:.01ms!important;animation-duration:.01ms!important}
@@ -871,8 +885,9 @@ document.documentElement.classList.add('js-anim');
       d.className = 'frame';
       var im = new Image();
       /* sizes before srcset before src, so selection happens with full information.
-         Frames are ~200-260px tall, so the 500w -sm variant wins here. */
-      im.sizes = '260px';
+         Frames measure 180px wide on desktop and 126px on mobile, so 180px declares
+         the slot honestly: DPR 2 needs 360px and the 500w -sm variant wins. */
+      im.sizes = '180px';
       im.srcset = srcsetOf(p);
       im.src = p.src;
       im.alt = '';
