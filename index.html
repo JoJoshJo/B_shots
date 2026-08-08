@@ -268,14 +268,6 @@ body.done .scroll-hint{opacity:1}
 .stmt-body p{color:var(--dim);font-size:15px;line-height:1.85;margin-top:20px;max-width:52ch}
 
 /* ============ WORK ============ */
-.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:36px}
-.filters button{
-  padding:8px 17px;border:1px solid var(--line);border-radius:100px;
-  font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);
-  transition:all .35s ease;
-}
-.filters button:hover{color:var(--bone);border-color:var(--dim)}
-.filters button.on{background:var(--bone);color:var(--ink);border-color:var(--bone)}
 /* ---- photo sphere ---- */
 #sphere{
   position:relative;height:clamp(520px,70vh,760px);
@@ -290,13 +282,15 @@ body.done .scroll-hint{opacity:1}
    expressed in the parent's rotated basis and swing the photo around as it spins.
    Margins offset the box before any transform, so transform-origin is the true centre. */
 .orb{
-  position:absolute;left:50%;top:50%;width:84px;margin:-56px 0 0 -42px;
+  position:absolute;left:50%;top:50%;width:84px;margin:-42px 0 0 -42px;
   transform-style:preserve-3d;cursor:pointer;
   -webkit-tap-highlight-color:transparent;
 }
 .orb img{
-  display:block;width:100%;aspect-ratio:3/4;object-fit:cover;
-  border-radius:3px;box-shadow:0 12px 28px rgba(0,0,0,.5);
+  display:block;width:100%;aspect-ratio:1/1;object-fit:cover;
+  /* A square centre-crop of a 3:4 portrait cuts foreheads and chins; bias upward. */
+  object-position:center 30%;
+  border-radius:50%;box-shadow:0 10px 24px rgba(0,0,0,.45);
   transition:filter .3s ease;
 }
 .orb:focus-visible{outline:2px solid var(--brass);outline-offset:4px}
@@ -391,21 +385,39 @@ footer{
   display:none;place-items:center;padding:clamp(16px,4vw,60px);
 }
 #lb.on{display:grid}
-#lb img{
-  max-width:100%;max-height:82vh;object-fit:contain;
-  opacity:0;transform:scale(.965);
-  transition:opacity .5s ease,transform .7s var(--ease);
+.lb-card{
+  position:relative;overflow:hidden;
+  /* 560px wide unless the viewport is too short for it: a 3:4 photo at 560 is 747px
+     tall, which alone overflows an 800px-high screen and cuts off the title and tag.
+     Deriving width from the free height keeps the whole card visible. */
+  width:min(100%, 560px, (82vh - 120px) * 0.75);
+  background:var(--ink-2);border-radius:6px;
+  box-shadow:0 30px 80px rgba(0,0,0,.6);
+  opacity:0;transform:scale(.96);
+  transition:opacity .42s var(--ease),transform .42s var(--ease);
 }
-#lb.ready img{opacity:1;transform:none}
-#lb .meta{
-  position:absolute;bottom:26px;left:0;right:0;text-align:center;
-  font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--dim);
+#lb.ready .lb-card{opacity:1;transform:none}
+/* The full frame, square-cornered — the circle belongs to the orbs only. */
+#lb img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover}
+.lb-text{padding:26px 28px 30px}
+.lb-text h3{
+  font-family:var(--display);font-size:26px;font-weight:400;
+  color:var(--bone);line-height:1.15;
 }
-#lb .meta s{text-decoration:none;color:var(--brass)}
+.lb-text .tag{
+  margin-top:10px;font-size:10px;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--brass);
+}
 #lb .x{
-  position:absolute;top:22px;right:26px;font-size:11px;letter-spacing:.24em;text-transform:uppercase;
-  min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:flex-end;
+  position:absolute;top:14px;right:14px;z-index:3;
+  width:36px;height:36px;border-radius:50%;
+  background:rgba(20,16,14,.72);border:1px solid rgba(239,231,219,.2);
+  color:var(--bone);font-size:14px;line-height:1;
+  display:grid;place-items:center;
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  transition:background .3s ease;
 }
+#lb .x:hover{background:rgba(20,16,14,.92)}
 #lb .nav{
   position:absolute;top:50%;transform:translateY(-50%);
   width:46px;height:46px;border:1px solid var(--line);border-radius:50%;
@@ -422,12 +434,11 @@ footer{
   .contact-rows{grid-template-columns:1fr 1fr}
 }
 @media(max-width:680px){
-  .orb{width:58px;margin:-38.67px 0 0 -29px}
+  .orb{width:58px;margin:-29px 0 0 -29px}
   .marquee{height:32%}
   .frame{height:62%}
   .desc{font-size:14.5px}
   /* 44px minimum tap targets */
-  .filters button{padding:14px 20px;min-height:44px;display:inline-flex;align-items:center}
   .svc{grid-template-columns:1fr}
   .cols{grid-template-columns:1fr}
   .contact-rows{grid-template-columns:1fr}
@@ -518,14 +529,7 @@ document.documentElement.classList.add('js-anim');
 
 <section id="work">
   <div class="wrap">
-    <div class="sec-head rv"><span class="num">01</span><h2>Selected Work</h2></div>
-    <div class="filters rv" id="filters">
-      <button data-k="all" class="on">All</button>
-      <button data-k="fashion">Fashion</button>
-      <button data-k="portrait">Portrait</button>
-      <button data-k="events">Events</button>
-      <button data-k="brands">Brands</button>
-    </div>
+    <div class="sec-head rv"><span class="num">01</span><h2>My Work</h2></div>
     <div id="sphere"><div id="sphere-inner"></div></div>
     <div class="sphere-cap" id="spherecap"></div>
   </div>
@@ -632,11 +636,16 @@ document.documentElement.classList.add('js-anim');
 </footer>
 
 <div id="lb">
-  <button class="x" id="lbx">Close</button>
-  <button class="nav prev" id="lbp">‹</button>
-  <img id="lbi" alt="">
-  <button class="nav next" id="lbn">›</button>
-  <div class="meta"><span id="lbm"></span></div>
+  <button class="nav prev" id="lbp" aria-label="Previous">‹</button>
+  <div class="lb-card">
+    <button class="x" id="lbx" aria-label="Close">&#10005;</button>
+    <img id="lbi" alt="">
+    <div class="lb-text">
+      <h3 id="lbm"></h3>
+      <div class="tag" id="lbt"></div>
+    </div>
+  </div>
+  <button class="nav next" id="lbn" aria-label="Next">›</button>
 </div>
 
 <script>const PHOTOS = [
@@ -947,43 +956,19 @@ document.documentElement.classList.add('js-anim');
   }
 
   /* ---------- work sphere ---------- */
-  var CATS = [
-    {k:'all',      l:'All'},
-    {k:'fashion',  l:'Fashion'},
-    {k:'portrait', l:'Portrait'},
-    {k:'events',   l:'Events'},
-    {k:'brands',   l:'Brands'}
-  ];
-  var SPHERE_CATS = ['fashion','portrait','events','brands'];
   var sphere = document.getElementById('sphere');
   var sphereInner = document.getElementById('sphere-inner');
   var sphereCap = document.getElementById('spherecap');
-  var filters = document.getElementById('filters');
-  var current = 'all', visible = [], orbs = [];
-
-  /* The buttons ship in the markup so the filter row still renders with JS off.
-     CATS stays the source of truth and rebuilds them if the markup is ever missing. */
-  if(!filters.querySelector('button')){
-    CATS.forEach(function(c,i){
-      var b = document.createElement('button');
-      b.textContent = c.l; b.dataset.k = c.k;
-      if(!i) b.classList.add('on');
-      filters.appendChild(b);
-    });
-  }
-  filters.querySelectorAll('button').forEach(function(b){
-    b.addEventListener('click', function(){
-      filters.querySelectorAll('button').forEach(function(x){ x.classList.remove('on'); });
-      b.classList.add('on'); current = b.dataset.k; render();
-    });
-  });
+  var visible = [], orbs = [];
 
   var rotY = 0, rotX = 0;      /* current sphere rotation, degrees */
   var velY = 0, velX = 0;      /* momentum, degrees per frame */
   var dragging = false, moved = false, pid = null;
   var AUTO = 0.12;             /* auto-rotate, degrees per frame */
+  var DRIFT_XY = 11, DRIFT_Z = 8;   /* per-orb drift amplitude, px */
+  var driftT = 0;              /* running timestamp, advances even while dragging */
 
-  function radiusOf(){ return window.matchMedia('(max-width:680px)').matches ? 150 : 260; }
+  function radiusOf(){ return window.matchMedia('(max-width:680px)').matches ? 165 : 300; }
   function lbOpen(){ var el = document.getElementById('lb'); return !!el && el.classList.contains('on'); }
 
   function setCap(p){
@@ -1018,18 +1003,10 @@ document.documentElement.classList.add('js-anim');
   function orbOf(el){ for(var i=0;i<orbs.length;i++) if(orbs[i].el === el) return orbs[i]; return null; }
 
   function render(){
-    visible = PHOTOS.filter(function(p){
-      return SPHERE_CATS.indexOf(p.cat) >= 0 && (current === 'all' || p.cat === current);
-    });
-    /* Reuse the orb for any photo that survives the filter so it glides to its new
-       lattice slot rather than being destroyed and rebuilt in place. */
-    var keep = [];
-    orbs.forEach(function(o){
-      if(visible.indexOf(o.p) >= 0) keep.push(o);
-      else if(o.el.parentNode) o.el.parentNode.removeChild(o.el);
-    });
+    /* Every photo except the archive set and the print spread — no category state. */
+    visible = PHOTOS.filter(function(p){ return p.cat !== 'archive' && p.cat !== 'print'; });
+    sphereInner.innerHTML = '';
     orbs = visible.map(function(p){
-      for(var i=0;i<keep.length;i++) if(keep[i].p === p) return keep[i];
       var el = makeOrb(p);
       sphereInner.appendChild(el);
       return {el:el, p:p, cx:0, cy:0, cz:0, tx:0, ty:0, tz:0, fresh:true, hot:false};
@@ -1061,15 +1038,25 @@ document.documentElement.classList.add('js-anim');
     var ca = Math.cos(a), sa = Math.sin(a), cb = Math.cos(b), sb = Math.sin(b);
     sphereInner.style.transform = 'rotateX('+rotX.toFixed(3)+'deg) rotateY('+rotY.toFixed(3)+'deg)';
 
-    orbs.forEach(function(o){
-      /* ease toward the target slot — this is the filter glide */
+    orbs.forEach(function(o,i){
       o.cx += (o.tx - o.cx) * 0.18;
       o.cy += (o.ty - o.cy) * 0.18;
       o.cz += (o.tz - o.cz) * 0.18;
 
+      /* Per-orb drift on top of the lattice slot. The sphere turns as a rigid body,
+         so an orb near a pole barely travels; this keeps every one of them moving.
+         Incommensurate periods and per-index phase mean they never sync up. */
+      var dx = 0, dy = 0, dz = 0;
+      if(!RM){
+        dx = Math.sin(driftT*0.0004 + i*2.1) * DRIFT_XY;
+        dy = Math.cos(driftT*0.0005 + i*1.7) * DRIFT_XY;
+        dz = Math.sin(driftT*0.0003 + i*0.9) * DRIFT_Z;
+      }
+      var px = o.cx + dx, py = o.cy + dy, pz = o.cz + dz;
+
       /* depth in camera space, matching the parent's rotateX(a) rotateY(b) order */
-      var z1 = -o.cx*sb + o.cz*cb;
-      var depth = o.cy*sa + z1*ca;
+      var z1 = -px*sb + pz*cb;
+      var depth = py*sa + z1*ca;
 
       var t = (depth/R + 1)/2;               /* 0 at the back, 1 at the front */
       if(t < 0) t = 0; else if(t > 1) t = 1;
@@ -1078,7 +1065,7 @@ document.documentElement.classList.add('js-anim');
       /* Billboarding: the exact inverse of the parent rotation, so every photo stays
          screen-aligned and upright. inverse(Rx(a)·Ry(b)) === Ry(-b)·Rx(-a). */
       o.el.style.transform =
-        'translate3d('+o.cx.toFixed(2)+'px,'+o.cy.toFixed(2)+'px,'+o.cz.toFixed(2)+'px) '+
+        'translate3d('+px.toFixed(2)+'px,'+py.toFixed(2)+'px,'+pz.toFixed(2)+'px) '+
         'rotateY('+(-rotY).toFixed(3)+'deg) rotateX('+(-rotX).toFixed(3)+'deg) '+
         'scale('+s.toFixed(3)+')';
       o.el.style.opacity = (0.35 + 0.65*t).toFixed(3);
@@ -1086,7 +1073,8 @@ document.documentElement.classList.add('js-anim');
     });
   }
 
-  function tick(){
+  function tick(ts){
+    driftT = ts || 0;          /* independent of drag/momentum, so drift never stops */
     if(!dragging && !lbOpen()){
       if(Math.abs(velY) > 0.02 || Math.abs(velX) > 0.02){
         rotY += velY; rotX += velX;
@@ -1165,7 +1153,8 @@ document.documentElement.classList.add('js-anim');
   setFixed('portrait', po);
 
   /* ---------- lightbox ---------- */
-  var lb=document.getElementById('lb'), lbi=document.getElementById('lbi'), lbm=document.getElementById('lbm');
+  var lb=document.getElementById('lb'), lbi=document.getElementById('lbi'),
+      lbm=document.getElementById('lbm'), lbt=document.getElementById('lbt');
   var cur = 0;
   function openLB(i){
     cur = i; lb.classList.add('on'); document.body.classList.add('locked');
@@ -1177,7 +1166,8 @@ document.documentElement.classList.add('js-anim');
     /* Full-screen view always gets the large file — never the 500px variant. */
     lbi.removeAttribute('srcset');
     lbi.src = p.src;
-    lbm.innerHTML = p.label + ' &nbsp;<s>' + p.tag + '</s>';
+    lbm.textContent = p.label;
+    lbt.textContent = p.tag;
     requestAnimationFrame(function(){ setTimeout(function(){ lb.classList.add('ready'); }, 20); });
   }
   function closeLB(){ lb.classList.remove('on','ready'); document.body.classList.remove('locked'); }
