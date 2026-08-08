@@ -454,8 +454,8 @@ footer{
      negative margin here opened a dead gap between the CTA and the frames. */
   .hero-inner{margin-top:-3vh}
   .orb{width:76px;margin:-38px 0 0 -38px}
-  /* Mobile orbit: 175 + 38*1.35 + 11 = 237 from centre, so the box needs ~474px. */
-  #sphere{height:clamp(520px,60vh,600px)}
+  /* Mobile orbit: 150 + 38*1.35 + 11 = 212 from centre, so the box needs ~424px. */
+  #sphere{height:clamp(470px,56vh,560px)}
   .marquee{height:38%}
   .frame{height:62%}
   .desc{font-size:14.5px}
@@ -994,7 +994,7 @@ document.documentElement.classList.add('js-anim');
   var driftT = 0;              /* running timestamp, advances even while dragging */
 
   function isMobile(){ return window.matchMedia('(max-width:680px)').matches; }
-  function radiusOf(){ return isMobile() ? 175 : 300; }
+  function radiusOf(){ return isMobile() ? 150 : 300; }
   /* Depth cues are tuned for the dense desktop sphere; the same ranges crush the
      sparser mobile one, leaving back orbs as faint dots. Compressed ranges on mobile
      keep them legible. Resolved once per frame, not per orb. */
