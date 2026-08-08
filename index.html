@@ -288,8 +288,9 @@ body.done .scroll-hint{opacity:1}
 }
 .orb img{
   display:block;width:100%;aspect-ratio:1/1;object-fit:cover;
-  /* A square centre-crop of a 3:4 portrait cuts foreheads and chins; bias upward. */
-  object-position:center 30%;
+  /* A square centre-crop of a 3:4 portrait discards 25% of the height. Biasing to 12%
+     takes only 3% off the top, which keeps crowns and headpieces in frame. */
+  object-position:center 12%;
   border-radius:50%;box-shadow:0 10px 24px rgba(0,0,0,.45);
   transition:filter .3s ease;
 }
