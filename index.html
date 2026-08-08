@@ -270,7 +270,12 @@ body.done .scroll-hint{opacity:1}
 /* ============ WORK ============ */
 /* ---- photo sphere ---- */
 #sphere{
-  position:relative;height:clamp(520px,70vh,760px);
+  position:relative;
+  /* Must contain the orbit, or orbs spill over the heading above and the caption below.
+     Worst case from centre = radius 300 + half an orb at hover scale (42*1.35) + drift 11
+     = 368, so the box needs ~736px. At 70vh alone a 800px-tall screen gave 560px and
+     orbs overflowed by ~70px at both ends. */
+  height:clamp(750px,70vh,820px);
   perspective:1400px;
   cursor:grab;
   /* pan-y lets a vertical swipe scroll the page; horizontal drags spin the sphere */
@@ -283,15 +288,25 @@ body.done .scroll-hint{opacity:1}
    Margins offset the box before any transform, so transform-origin is the true centre. */
 .orb{
   position:absolute;left:50%;top:50%;width:84px;margin:-42px 0 0 -42px;
-  transform-style:preserve-3d;cursor:pointer;
-  -webkit-tap-highlight-color:transparent;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+  /* The wrapper is the element that carries the transform and gets promoted to its own
+     compositing layer during a drag. Chrome can drop a child's border-radius clip on a
+     promoted layer, which rendered orbs as squares mid-drag — so the clip lives here,
+     on the transformed element itself. The shadow moves here too: overflow:hidden would
+     clip a shadow painted by the child, but never the clipping element's own. */
+  border-radius:50%;overflow:hidden;
+  box-shadow:0 10px 24px rgba(0,0,0,.45);
+  isolation:isolate;
 }
 .orb img{
   display:block;width:100%;aspect-ratio:1/1;object-fit:cover;
   /* A square centre-crop of a 3:4 portrait discards 25% of the height. Biasing to 12%
      takes only 3% off the top, which keeps crowns and headpieces in frame. */
   object-position:center 12%;
-  border-radius:50%;box-shadow:0 10px 24px rgba(0,0,0,.45);
+  border-radius:50%;
+  /* Belt and braces: a mask survives layer promotion where a border-radius clip may not. */
+  -webkit-mask-image:radial-gradient(circle, #000 99%, transparent 100%);
+  mask-image:radial-gradient(circle, #000 99%, transparent 100%);
   transition:filter .3s ease;
 }
 .orb:focus-visible{outline:2px solid var(--brass);outline-offset:4px}
@@ -436,6 +451,8 @@ footer{
 }
 @media(max-width:680px){
   .orb{width:58px;margin:-29px 0 0 -29px}
+  /* Mobile orbit is smaller: 165 + 29*1.35 + 11 = 215 from centre, so ~430px suffices. */
+  #sphere{height:clamp(440px,62vh,560px)}
   .marquee{height:32%}
   .frame{height:62%}
   .desc{font-size:14.5px}
