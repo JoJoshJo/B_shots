@@ -454,8 +454,8 @@ footer{
      negative margin here opened a dead gap between the CTA and the frames. */
   .hero-inner{margin-top:-3vh}
   .orb{width:76px;margin:-38px 0 0 -38px}
-  /* Mobile orbit: 200 + 38*1.35 + 11 = 262 from centre, so the box needs ~525px. */
-  #sphere{height:clamp(560px,66vh,640px)}
+  /* Mobile orbit: 175 + 38*1.35 + 11 = 237 from centre, so the box needs ~474px. */
+  #sphere{height:clamp(520px,60vh,600px)}
   .marquee{height:38%}
   .frame{height:62%}
   .desc{font-size:14.5px}
@@ -470,9 +470,10 @@ footer{
 }
 /* Short viewports: lift the copy and shrink the band so the CTA clears the frames. */
 /* Short viewports, but not phones: this lifts the copy so the CTA clears the marquee
-   frames on a laptop. It sits after the 680px block, so without the min-width guard it
-   would override the mobile hero spacing on any phone under 820px tall. */
-@media(min-width:681px) and (max-height:820px){
+   frames on a laptop. The range runs to 1000px because heights between 820 and 1000
+   were otherwise uncovered and overlapped by up to 23px. It sits after the 680px block,
+   so without the min-width guard it would override the mobile hero spacing on phones. */
+@media(min-width:681px) and (max-height:1000px){
   .hero-inner{margin-top:-13vh}
   .marquee{height:34%}
 }
@@ -993,7 +994,7 @@ document.documentElement.classList.add('js-anim');
   var driftT = 0;              /* running timestamp, advances even while dragging */
 
   function isMobile(){ return window.matchMedia('(max-width:680px)').matches; }
-  function radiusOf(){ return isMobile() ? 200 : 300; }
+  function radiusOf(){ return isMobile() ? 175 : 300; }
   /* Depth cues are tuned for the dense desktop sphere; the same ranges crush the
      sparser mobile one, leaving back orbs as faint dots. Compressed ranges on mobile
      keep them legible. Resolved once per frame, not per orb. */
