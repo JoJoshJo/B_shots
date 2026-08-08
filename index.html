@@ -450,10 +450,13 @@ footer{
   .contact-rows{grid-template-columns:1fr 1fr}
 }
 @media(max-width:680px){
-  .orb{width:58px;margin:-29px 0 0 -29px}
-  /* Mobile orbit is smaller: 165 + 29*1.35 + 11 = 215 from centre, so ~430px suffices. */
-  #sphere{height:clamp(440px,62vh,560px)}
-  .marquee{height:32%}
+  /* Copy sits lower on mobile: the marquee is anchored to the bottom, so a large
+     negative margin here opened a dead gap between the CTA and the frames. */
+  .hero-inner{margin-top:-3vh}
+  .orb{width:76px;margin:-38px 0 0 -38px}
+  /* Mobile orbit: 200 + 38*1.35 + 11 = 262 from centre, so the box needs ~525px. */
+  #sphere{height:clamp(560px,66vh,640px)}
+  .marquee{height:38%}
   .frame{height:62%}
   .desc{font-size:14.5px}
   /* 44px minimum tap targets */
@@ -466,7 +469,10 @@ footer{
   #lb .prev{left:6px}#lb .next{right:6px}
 }
 /* Short viewports: lift the copy and shrink the band so the CTA clears the frames. */
-@media(max-height:820px){
+/* Short viewports, but not phones: this lifts the copy so the CTA clears the marquee
+   frames on a laptop. It sits after the 680px block, so without the min-width guard it
+   would override the mobile hero spacing on any phone under 820px tall. */
+@media(min-width:681px) and (max-height:820px){
   .hero-inner{margin-top:-13vh}
   .marquee{height:34%}
 }
@@ -986,7 +992,14 @@ document.documentElement.classList.add('js-anim');
   var DRIFT_XY = 11, DRIFT_Z = 8;   /* per-orb drift amplitude, px */
   var driftT = 0;              /* running timestamp, advances even while dragging */
 
-  function radiusOf(){ return window.matchMedia('(max-width:680px)').matches ? 165 : 300; }
+  function isMobile(){ return window.matchMedia('(max-width:680px)').matches; }
+  function radiusOf(){ return isMobile() ? 200 : 300; }
+  /* Depth cues are tuned for the dense desktop sphere; the same ranges crush the
+     sparser mobile one, leaving back orbs as faint dots. Compressed ranges on mobile
+     keep them legible. Resolved once per frame, not per orb. */
+  var DEPTH_DESKTOP = {sBase:0.65, sRange:0.55, oBase:0.35, oRange:0.65};
+  var DEPTH_MOBILE  = {sBase:0.82, sRange:0.36, oBase:0.55, oRange:0.45};
+  function depthOf(){ return isMobile() ? DEPTH_MOBILE : DEPTH_DESKTOP; }
   function lbOpen(){ var el = document.getElementById('lb'); return !!el && el.classList.contains('on'); }
 
   function setCap(p){
@@ -1051,7 +1064,7 @@ document.documentElement.classList.add('js-anim');
   }
 
   function draw(){
-    var R  = radiusOf();
+    var R  = radiusOf(), D = depthOf();
     var a  = rotX * Math.PI/180, b = rotY * Math.PI/180;
     var ca = Math.cos(a), sa = Math.sin(a), cb = Math.cos(b), sb = Math.sin(b);
     sphereInner.style.transform = 'rotateX('+rotX.toFixed(3)+'deg) rotateY('+rotY.toFixed(3)+'deg)';
@@ -1078,7 +1091,7 @@ document.documentElement.classList.add('js-anim');
 
       var t = (depth/R + 1)/2;               /* 0 at the back, 1 at the front */
       if(t < 0) t = 0; else if(t > 1) t = 1;
-      var s = (0.65 + 0.55*t) * (o.hot ? 1.35 : 1);
+      var s = (D.sBase + D.sRange*t) * (o.hot ? 1.35 : 1);
 
       /* Billboarding: the exact inverse of the parent rotation, so every photo stays
          screen-aligned and upright. inverse(Rx(a)·Ry(b)) === Ry(-b)·Rx(-a). */
@@ -1086,7 +1099,7 @@ document.documentElement.classList.add('js-anim');
         'translate3d('+px.toFixed(2)+'px,'+py.toFixed(2)+'px,'+pz.toFixed(2)+'px) '+
         'rotateY('+(-rotY).toFixed(3)+'deg) rotateX('+(-rotX).toFixed(3)+'deg) '+
         'scale('+s.toFixed(3)+')';
-      o.el.style.opacity = (0.35 + 0.65*t).toFixed(3);
+      o.el.style.opacity = (D.oBase + D.oRange*t).toFixed(3);
       o.el.style.zIndex  = String(Math.round(depth) + 1000);
     });
   }
