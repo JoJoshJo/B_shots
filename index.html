@@ -265,7 +265,7 @@ body.done .scroll-hint{opacity:1}
    expressed in the parent's rotated basis and swing the photo around as it spins.
    Margins offset the box before any transform, so transform-origin is the true centre. */
 .orb{
-  position:absolute;left:50%;top:50%;width:84px;margin:-42px 0 0 -42px;
+  position:absolute;left:50%;top:50%;width:72px;margin:-36px 0 0 -36px;
   cursor:pointer;-webkit-tap-highlight-color:transparent;
   /* The wrapper is the element that carries the transform and gets promoted to its own
      compositing layer during a drag. Chrome can drop a child's border-radius clip on a
@@ -636,7 +636,7 @@ document.documentElement.classList.add('js-anim');
 <script>const PHOTOS = [
 {
 "id": "p01",
-"cat": "archive",
+"cat": "fashion",
 "label": "Reading Room",
 "tag": "Editorial",
 "src": "assets/photos/p01.webp",
@@ -672,7 +672,7 @@ document.documentElement.classList.add('js-anim');
 },
 {
 "id": "p05",
-"cat": "archive",
+"cat": "fashion",
 "label": "Cahiers",
 "tag": "Editorial",
 "src": "assets/photos/p05.webp",
@@ -699,7 +699,7 @@ document.documentElement.classList.add('js-anim');
 },
 {
 "id": "p08",
-"cat": "archive",
+"cat": "fashion",
 "label": "Gold Hand",
 "tag": "Location",
 "src": "assets/photos/p08.webp",
@@ -708,7 +708,7 @@ document.documentElement.classList.add('js-anim');
 },
 {
 "id": "p09",
-"cat": "archive",
+"cat": "fashion",
 "label": "Bloom",
 "tag": "Location",
 "src": "assets/photos/p09.webp",
@@ -726,7 +726,7 @@ document.documentElement.classList.add('js-anim');
 },
 {
 "id": "p11",
-"cat": "archive",
+"cat": "events",
 "label": "Service",
 "tag": "Event",
 "src": "assets/photos/p11.webp",
@@ -753,7 +753,7 @@ document.documentElement.classList.add('js-anim');
 },
 {
 "id": "p14",
-"cat": "archive",
+"cat": "portrait",
 "label": "December",
 "tag": "Studio",
 "src": "assets/photos/p14.webp",
@@ -771,7 +771,7 @@ document.documentElement.classList.add('js-anim');
 },
 {
 "id": "p16",
-"cat": "archive",
+"cat": "fashion",
 "label": "Headlights II",
 "tag": "Location",
 "src": "assets/photos/p16.webp",
@@ -780,7 +780,7 @@ document.documentElement.classList.add('js-anim');
 },
 {
 "id": "p17",
-"cat": "archive",
+"cat": "portrait",
 "label": "Silk & Crown",
 "tag": "Studio",
 "src": "assets/photos/p17.webp",
@@ -807,7 +807,7 @@ document.documentElement.classList.add('js-anim');
 },
 {
 "id": "p20",
-"cat": "archive",
+"cat": "fashion",
 "label": "Red Parasol",
 "tag": "Location",
 "src": "assets/photos/p20.webp",
@@ -1028,8 +1028,12 @@ document.documentElement.classList.add('js-anim');
   /* Depth cues are tuned for the dense desktop sphere; the same ranges crush the
      sparser mobile one, leaving back orbs as faint dots. Compressed ranges on mobile
      keep them legible. Resolved once per frame, not per orb. */
-  var DEPTH_DESKTOP = {sBase:0.65, sRange:0.55, oBase:0.35, oRange:0.65};
-  var DEPTH_MOBILE  = {sBase:0.82, sRange:0.36, oBase:0.55, oRange:0.45};
+  /* Steep falloff on desktop so the globe reads as volume rather than a flat scatter:
+     back-facing orbs go markedly smaller, dimmer and hazier. blur is the atmospheric
+     cue, in px at the far pole. Mobile keeps its shallow ranges and no blur — the
+     small sphere needs a legibility floor. */
+  var DEPTH_DESKTOP = {sBase:0.42, sRange:0.78, oBase:0.16, oRange:0.84, blur:2.4};
+  var DEPTH_MOBILE  = {sBase:0.82, sRange:0.36, oBase:0.55, oRange:0.45, blur:0};
   function depthOf(){ return isMobile() ? DEPTH_MOBILE : DEPTH_DESKTOP; }
   function lbOpen(){ var el = document.getElementById('lb'); return !!el && el.classList.contains('on'); }
 
@@ -1131,6 +1135,11 @@ document.documentElement.classList.add('js-anim');
         'rotateY('+(-rotY).toFixed(3)+'deg) rotateX('+(-rotX).toFixed(3)+'deg) '+
         'scale('+s.toFixed(3)+')';
       o.el.style.opacity = (D.oBase + D.oRange*t).toFixed(3);
+      /* Atmospheric haze: full at the far pole, clean at the front. Lives on the
+         wrapper, while the hover brightness lives on the img, so the two filter
+         declarations never overwrite each other. */
+      o.el.style.filter = D.blur ? 'blur('+((1-t)*D.blur).toFixed(2)+'px)' : '';
+      /* Nearer orbs paint over farther ones. */
       o.el.style.zIndex  = String(Math.round(depth) + 1000);
     });
   }
