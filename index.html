@@ -24,6 +24,7 @@
   --ink-2:#1E1815;
   --ink-3:#2A211C;
   --bone:#EFE7DB;
+  --paper:#F1EEE8;
   --dim:#9E9184;
   --brass:#C8973E;
   --line:rgba(239,231,219,.14);
@@ -64,7 +65,9 @@ section{padding:clamp(72px,10vw,140px) 0}
   position:fixed;inset:0;z-index:200;display:flex;pointer-events:none;
 }
 #overture .leaf{
-  flex:1;background:var(--ink);
+  /* Paper, not ink: the curtain now opens onto the light hero, so an ink leaf
+     would flash dark for a frame as it lifts. */
+  flex:1;background:var(--paper);
   transition:transform 1.15s var(--ease);
 }
 #overture .leaf:nth-child(1){transition-delay:.62s}
@@ -74,7 +77,8 @@ section{padding:clamp(72px,10vw,140px) 0}
   position:absolute;inset:0;display:grid;place-items:center;
   transition:opacity .45s ease;
 }
-#overture .mark img{width:min(190px,42vw);opacity:.94}
+/* The mark is a bone logo; on paper it needs inverting to read. */
+#overture .mark img{width:min(190px,42vw);opacity:.94;filter:invert(1) brightness(.1)}
 body.opened #overture .leaf:nth-child(1){transform:translateY(-101%)}
 body.opened #overture .leaf:nth-child(2){transform:translateY(101%)}
 body.opened #overture .leaf:nth-child(3){transform:translateY(-101%)}
@@ -116,6 +120,25 @@ header .brand span{
 .nav-right{display:flex;align-items:center;gap:26px}
 .lang{display:flex;gap:7px;font-size:10px;letter-spacing:.16em;color:var(--dim)}
 .lang b{color:var(--bone);font-weight:500}
+
+/* ---- header over the light hero ---- */
+header.on-paper .brand span,
+header.on-paper .lang,
+header.on-paper .lang b,
+header.on-paper .hnav a{color:var(--ink)}
+header.on-paper .brand span,
+header.on-paper .lang{opacity:.72}
+header.on-paper .hnav a{opacity:.7}
+header.on-paper .hnav a:hover{opacity:1;color:var(--ink)}
+header.on-paper .hnav a.here{opacity:1;color:var(--brass)}
+/* The bone logo mark is near-invisible on paper; invert it to a dark mark. */
+header.on-paper .brand img{filter:invert(1) brightness(.1)}
+/* .stuck paints a dark bar. Over the hero that would put ink text on ink —
+   swap it for a paper-tinted bar so the blur survives but the text stays legible. */
+header.on-paper.stuck{
+  background:rgba(241,238,232,.82);
+  border-bottom-color:rgba(20,16,14,.12);
+}
 .hnav{display:flex;align-items:center;gap:26px}
 .hnav a{
   font-size:10px;letter-spacing:.22em;text-transform:uppercase;
@@ -131,85 +154,48 @@ header .brand span{
   overflow:hidden;display:flex;flex-direction:column;
   align-items:center;justify-content:center;text-align:center;
   padding:0 var(--pad);
+  background:var(--paper);
+}
+/* Scattered photographs. Positions come from JS so one table drives both
+   breakpoints; only the parallax transform is written per frame. */
+.scatter{position:absolute;inset:0;z-index:1;pointer-events:none}
+.sc{position:absolute;display:block;will-change:transform}
+.sc img{
+  display:block;width:100%;height:auto;object-fit:cover;
+  border-radius:0;box-shadow:none;
 }
 .hero-inner{
   position:relative;z-index:10;display:flex;flex-direction:column;
-  align-items:center;margin-top:-9vh;max-width:900px;
-}
-.pill{
-  display:inline-block;border:1px solid var(--line);border-radius:100px;
-  background:rgba(30,24,21,.5);backdrop-filter:blur(8px);
-  padding:8px 18px;font-size:10px;letter-spacing:.26em;
-  text-transform:uppercase;color:var(--dim);margin-bottom:26px;
+  align-items:center;max-width:900px;will-change:transform;
 }
 #hero h1{
-  font-family:var(--display);font-weight:400;
-  font-size:clamp(46px,8.5vw,104px);line-height:.98;letter-spacing:-.01em;
+  font-family:var(--display);font-weight:400;color:var(--ink);
+  font-size:clamp(38px,7vw,104px);line-height:1;letter-spacing:-.01em;
+  white-space:nowrap;
 }
-#hero h1 .w{display:inline-block}
-#hero h1 .brass{color:var(--brass)}
-.desc{
-  margin-top:26px;max-width:44ch;font-size:15.5px;line-height:1.75;
-  color:var(--dim);
+/* The 60% is expressed as colour, not opacity: fadeUp ends on opacity:1 with
+   fill:forwards, which would outrank an opacity-based hover exactly as it once
+   killed the CTA's scale. */
+.hero-mail{
+  margin-top:22px;font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+  color:rgba(20,16,14,.6);transition:color .3s ease;
 }
-.cta{
-  margin-top:32px;padding:14px 34px;border-radius:100px;
-  background:var(--brass);color:#1A1206;font-weight:500;
-  font-size:11px;letter-spacing:.22em;text-transform:uppercase;
-  transition:transform .3s var(--ease),background .3s ease;
-}
-.cta:hover{transform:scale(1.045);background:#D9A94E}
-.cta:active{transform:scale(.97)}
+.hero-mail:hover{color:var(--ink)}
 
-/* Hidden state is opt-in, gated on html.js-anim exactly like .rv/.clip. If JS never
-   runs, the hero copy is visible rather than stranded at opacity:0. The translateY
-   values ride the same gate so nothing shifts when JS is on. .cta takes opacity only —
-   it has no entrance offset, and a translate here would fight its hover scale. */
-.js-anim .pill,
-.js-anim .desc,
-.js-anim .cta,
-.js-anim #hero h1 .w{opacity:0}
-.js-anim .pill,.js-anim .desc{transform:translateY(10px)}
-.js-anim #hero h1 .w{transform:translateY(14px)}
+/* Paper resolves into the dark site below, so there is no hard seam. */
+.hero-fade{
+  position:absolute;left:0;right:0;bottom:0;height:40vh;z-index:6;pointer-events:none;
+  background:linear-gradient(to bottom,rgba(20,16,14,0) 0%,var(--ink) 100%);
+}
 
+/* Hidden state is opt-in, gated on html.js-anim exactly like .rv/.clip, so the hero
+   still reads with JS off rather than sitting at opacity:0. */
+.js-anim #hero h1,
+.js-anim .hero-mail{opacity:0;transform:translateY(14px)}
 /* entrance animations fire only after the overture lifts */
-body.done .pill{animation:fadeUp .8s var(--ease) .1s forwards}
-body.done #hero h1 .w:nth-child(1){animation:fadeUp .9s var(--ease) .22s forwards}
-body.done #hero h1 .w:nth-child(3){animation:fadeUp .9s var(--ease) .34s forwards}
-body.done .desc{animation:fadeUp .8s var(--ease) .55s forwards}
-/* The CTA fades without a transform. fadeUp ends on transform:none with fill:forwards,
-   and a finished forwards animation outranks the :hover/:active rules below — which
-   silently killed the button's scale. */
-body.done .cta{animation:fadeIn .8s var(--ease) .68s forwards}
+body.done #hero h1{animation:fadeUp .9s var(--ease) .18s forwards}
+body.done .hero-mail{animation:fadeUp .8s var(--ease) .4s forwards}
 @keyframes fadeUp{to{opacity:1;transform:none}}
-@keyframes fadeIn{to{opacity:1}}
-
-.marquee{
-  position:absolute;bottom:0;left:0;width:100%;height:38%;z-index:5;
-  -webkit-mask-image:linear-gradient(to bottom,transparent,#000 20%,#000 78%,transparent);
-  mask-image:linear-gradient(to bottom,transparent,#000 20%,#000 78%,transparent);
-}
-.track{
-  display:flex;gap:18px;align-items:center;height:100%;
-  width:max-content;padding-left:18px;
-  animation:slide 52s linear infinite;
-}
-.marquee:hover .track{animation-play-state:paused}
-@keyframes slide{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-.frame{
-  position:relative;flex-shrink:0;height:70%;aspect-ratio:3/4;
-  border-radius:3px;overflow:hidden;
-  box-shadow:0 18px 40px rgba(0,0,0,.55);
-}
-.frame:nth-child(odd){transform:rotate(-1.6deg)}
-.frame:nth-child(even){transform:rotate(2.4deg)}
-.frame img{width:100%;height:100%;object-fit:cover}
-
-#hero::after{
-  content:"";position:absolute;inset:0;z-index:6;pointer-events:none;
-  background:linear-gradient(to bottom,
-    rgba(20,16,14,.4) 0%,rgba(20,16,14,.72) 45%,rgba(20,16,14,.35) 100%);
-}
 .scroll-hint{
   position:absolute;bottom:26px;right:var(--pad);z-index:3;
   font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim);
@@ -232,7 +218,9 @@ body.done .scroll-hint{opacity:1}
 .clip.in{clip-path:inset(0 0 0 0)}
 
 /* ============ STATEMENT ============ */
-#statement{border-top:1px solid var(--line)}
+/* No border-top: it would draw a hairline exactly where the hero's gradient
+   lands on the ink, reintroducing the hard edge the fade exists to remove. */
+#statement{background:var(--ink)}
 .stmt-grid{display:grid;grid-template-columns:1fr 1.55fr;gap:clamp(30px,7vw,110px);align-items:start}
 .stmt-grid p.lead{
   font-family:var(--display);font-size:clamp(21px,2.9vw,38px);
@@ -427,15 +415,12 @@ footer{
   /* Four links plus EN/FR plus the logo will not fit on one line. The page is a
      single scroll, so no replacement menu is needed. */
   .hnav{display:none}
-  /* Copy sits lower on mobile: the marquee is anchored to the bottom, so a large
-     negative margin here opened a dead gap between the CTA and the frames. */
-  .hero-inner{margin-top:-3vh}
+  /* Six frames instead of eleven (JS drops the rest) and they run wider, so they
+     still read at phone size. */
+  .hero-mail{font-size:10px;letter-spacing:.18em}
   .orb{width:76px;margin:-38px 0 0 -38px}
   /* Mobile orbit: 150 + 38*1.35 + 11 = 212 from centre, so the box needs ~424px. */
   #sphere{height:clamp(470px,56vh,560px)}
-  .marquee{height:38%}
-  .frame{height:62%}
-  .desc{font-size:14.5px}
   /* 44px minimum tap targets */
   .svc{grid-template-columns:1fr}
   .cols{grid-template-columns:1fr}
@@ -445,23 +430,16 @@ footer{
   #lb .nav{width:38px;height:38px}
   #lb .prev{left:6px}#lb .next{right:6px}
 }
-/* Short viewports: lift the copy and shrink the band so the CTA clears the frames. */
-/* Short viewports, but not phones: this lifts the copy so the CTA clears the marquee
-   frames on a laptop. The range runs to 1000px because heights between 820 and 1000
-   were otherwise uncovered and overlapped by up to 23px. It sits after the 680px block,
-   so without the min-width guard it would override the mobile hero spacing on phones. */
-@media(min-width:681px) and (max-height:1000px){
-  .hero-inner{margin-top:-13vh}
-  .marquee{height:34%}
-}
 @media(prefers-reduced-motion:reduce){
   *{transition-duration:.01ms!important;animation-duration:.01ms!important}
   .rv,.clip{opacity:1!important;transform:none!important;clip-path:none!important}
   /* The rule above zeroes duration but not delay; without this the no-JS fallback
      would still sit on a black screen for ~4.6s before snapping open. */
   #overture .leaf,#overture .mark{animation-delay:0s!important}
-  .track{animation:none!important}
-  .pill,.desc,.cta,#hero h1 .w{opacity:1!important;transform:none!important}
+  /* No parallax: JS skips the scroll listener, and this clears any transform so the
+     scattered layout renders static and complete. */
+  .sc,.hero-inner{transform:none!important}
+  #hero h1,.hero-mail{opacity:1!important;transform:none!important}
 }
 </style>
 <script>
@@ -497,17 +475,12 @@ document.documentElement.classList.add('js-anim');
 <main id="top">
 
 <section id="hero">
+  <div class="scatter" id="scatter"></div>
   <div class="hero-inner">
-    <div class="pill">Portrait &amp; Fashion Photography</div>
-    <h1>
-      <span class="w">Original</span><br>
-      <span class="w brass">Brave</span>
-    </h1>
-    <p class="desc">Portrait, fashion, event and product photography by
-    Précieux Tchibozo. Lit, styled and directed — studio and location.</p>
-    <a class="cta" href="#contact">Book a shoot</a>
+    <h1>ORIGINAL BRAVE</h1>
+    <a class="hero-mail" href="mailto:originalbraveshots@gmail.com">originalbraveshots@gmail.com</a>
   </div>
-  <div class="marquee"><div class="track" id="track"></div></div>
+  <div class="hero-fade"></div>
   <div class="scroll-hint"><span class="rule"></span>Scroll</div>
 </section>
 
@@ -874,8 +847,7 @@ document.documentElement.classList.add('js-anim');
   if(RM){ document.body.classList.add('opened','done'); }
   else { window.addEventListener('load', function(){ setTimeout(open, 620); }); }
 
-  /* ---------- hero marquee ---------- */
-  var MARQUEE = ['p10','p07','p24','p23','p15','p19','p08','p21','p06','p22','p17','p13'];
+  /* ---------- hero scatter ---------- */
   var byId = {}; PHOTOS.forEach(function(p){ byId[p.id]=p; });
 
   /* Responsive variants are derived from the existing src, so the PHOTOS array is
@@ -884,39 +856,100 @@ document.documentElement.classList.add('js-anim');
   function smallOf(src){ return src.replace(/\.webp$/, '-sm.webp'); }
   function srcsetOf(p){ return smallOf(p.src) + ' 500w, ' + p.src + ' ' + p.w + 'w'; }
 
-  function buildMarquee(){
-    var track = document.getElementById('track');
-    if(!track) return;
-    /* The 12 ids are duplicated to 24 so translateX(-50%) lands the copy exactly
-       where the original was. Every frame carries the same gap, and no margin is
-       added anywhere, so the seam is invisible. */
-    MARQUEE.concat(MARQUEE).forEach(function(id){
-      var p = byId[id];
+  /* left/top/width are percentages of the hero box; speed is the parallax rate.
+     Speeds alternate fast/slow down the list so neighbours separate as you scroll. */
+  var SCATTER = [
+    {id:'p23', l:-4,  t:2,  w:15, s:0.30, m:{l:-6,  t:4,  w:30}},
+    {id:'p19', l:17,  t:-5, w:19, s:0.52, m:{l:52,  t:9,  w:34}},
+    {id:'p24', l:66,  t:6,  w:14, s:0.18, m:{l:6,   t:26, w:26}},
+    {id:'p07', l:86,  t:18, w:16, s:0.45, m:null},
+    {id:'p10', l:2,   t:44, w:13, s:0.24, m:{l:66,  t:58, w:28}},
+    {id:'p13', l:88,  t:46, w:15, s:0.58, m:null},
+    {id:'p21', l:17,  t:62, w:19, s:0.16, m:{l:-5,  t:66, w:32}},
+    {id:'p06', l:68,  t:62, w:16, s:0.40, m:null},
+    {id:'p22', l:-3,  t:78, w:14, s:0.55, m:null},
+    {id:'p15', l:44,  t:82, w:13, s:0.22, m:{l:58,  t:76, w:27}},
+    {id:'p12', l:84,  t:80, w:15, s:0.36, m:null}
+  ];
+  var WORDMARK_SPEED = 0.08;      /* slowest, so the wordmark lags behind the photos */
+
+  var scatter = document.getElementById('scatter');
+  var heroInner = document.querySelector('.hero-inner');
+  var hero = document.getElementById('hero');
+  var layers = [];
+
+  function mobileScatter(){ return window.matchMedia('(max-width:680px)').matches; }
+
+  function buildScatter(){
+    if(!scatter) return;
+    scatter.innerHTML = '';
+    layers = [];
+    var small = mobileScatter();
+    SCATTER.forEach(function(cfg){
+      /* On phones only the six entries carrying an `m` override are shown — eleven
+         frames at this size is noise, not composition. */
+      if(small && !cfg.m) return;
+      var p = byId[cfg.id];
       if(!p) return;
+      var pos = small ? cfg.m : cfg;
       var d = document.createElement('div');
-      d.className = 'frame';
+      d.className = 'sc';
+      d.style.left = pos.l + '%';
+      d.style.top  = pos.t + '%';
+      d.style.width = pos.w + '%';
       var im = new Image();
-      /* sizes before srcset before src, so selection happens with full information.
-         Frames measure 180px wide on desktop and 126px on mobile, so 180px declares
-         the slot honestly: DPR 2 needs 360px and the 500w -sm variant wins. */
-      im.sizes = '180px';
+      /* Natural proportions: the real w/h ride along, so nothing is forced to a ratio. */
+      im.width = p.w; im.height = p.h;
+      im.sizes = '20vw';
       im.srcset = srcsetOf(p);
       im.src = p.src;
       im.alt = '';
       d.appendChild(im);
-      track.appendChild(d);
+      scatter.appendChild(d);
+      layers.push({el:d, speed:cfg.s});
     });
   }
-  /* Built immediately rather than on body.done: the marquee has no dependency on the
-     overture, and building early lets the frames load behind the curtain instead of
-     popping in after it lifts. */
-  buildMarquee();
+
+  /* Parallax: transform only, rAF-throttled, and skipped entirely once the hero has
+     scrolled away so we stop writing styles nobody can see. */
+  var ticking = false, lastY = -1;
+  function applyParallax(){
+    ticking = false;
+    var y = window.scrollY;
+    if(y === lastY) return;
+    lastY = y;
+    if(y > hero.offsetHeight + 200) return;
+    for(var i=0;i<layers.length;i++){
+      layers[i].el.style.transform = 'translate3d(0,' + (-y*layers[i].speed).toFixed(2) + 'px,0)';
+    }
+    if(heroInner) heroInner.style.transform = 'translate3d(0,' + (-y*WORDMARK_SPEED).toFixed(2) + 'px,0)';
+  }
+  function onScroll(){ if(!ticking){ ticking = true; requestAnimationFrame(applyParallax); } }
+
+  buildScatter();
+  if(!RM){
+    window.addEventListener('scroll', onScroll, {passive:true});
+    applyParallax();
+  }
+  /* Rebuild across the breakpoint so the phone set and the desktop set swap cleanly. */
+  var wasSmall = mobileScatter();
+  window.addEventListener('resize', function(){
+    var now = mobileScatter();
+    if(now !== wasSmall){ wasSmall = now; buildScatter(); lastY = -1; if(!RM) applyParallax(); }
+  });
 
   /* ---------- header ---------- */
   var hd = document.getElementById('hd');
-  window.addEventListener('scroll', function(){
+  /* .on-paper while the header still sits over the light hero, so the bone brand,
+     nav and EN/FR flip to ink and the logo mark inverts. */
+  function syncHeader(){
+    var heroEl = document.getElementById('hero');
     hd.classList.toggle('stuck', window.scrollY > 60);
-  }, {passive:true});
+    if(heroEl) hd.classList.toggle('on-paper', window.scrollY < heroEl.offsetHeight - hd.offsetHeight);
+  }
+  window.addEventListener('scroll', syncHeader, {passive:true});
+  window.addEventListener('resize', syncHeader);
+  syncHeader();
 
   /* Scrollspy: highlight the nav link whose section is in view. Same
      IntersectionObserver pattern as the reveals — no library. */
