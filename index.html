@@ -236,7 +236,9 @@ body.done .scroll-hint{opacity:1}
   width:720px;height:720px;
   margin-left:32px;margin-right:0;
   shape-outside:circle(50%);
-  shape-margin:28px;
+  /* Tightened from 28 so the text presses closer to the silhouette; the visible
+     hug now reads as a curve rather than a distant column edge. */
+  shape-margin:10px;
 }
 .sphere-float #sphere{width:100%;height:100%}
 .sphere-float .sphere-cap{margin-top:14px}
@@ -251,7 +253,12 @@ body.done .scroll-hint{opacity:1}
   line-height:1.32;font-weight:400;color:var(--bone);
 }
 .work-copy p.lead b{color:var(--brass);font-weight:400;font-style:italic}
-.stmt-body p{color:var(--dim);font-size:15px;line-height:1.85;margin-top:20px}
+/* Justify so every line ends on the shape boundary — that is what makes the curve
+   read as a curve. Hyphens on prevent the "rivers" of white space that justified
+   narrow columns otherwise produce; lang="fr" on the markup gives correct French
+   hyphenation. The pull quote stays ragged — at 34px justification opens ugly gaps. */
+.stmt-body p{color:var(--dim);font-size:15px;line-height:1.85;margin-top:20px;
+  text-align:justify;hyphens:auto;-webkit-hyphens:auto}
 .work-copy::after{content:"";display:block;clear:both}
 
 /* shape-outside on a 720px float is meaningless at phone/tablet width — it would
@@ -524,7 +531,7 @@ document.documentElement.classList.add('js-anim');
         <div class="sphere-cap" id="spherecap"></div>
       </div>
       <p class="lead rv">Entre maîtrise de la lumière en studio et authenticité des espaces extérieurs, <b>il façonne des récits visuels percutants.</b></p>
-      <div class="stmt-body rv">
+      <div class="stmt-body rv" lang="fr">
         <p>Original Brave Shots est la signature visuelle de Précieux Tchibozo, photographe passionné dédié au portrait d'art et à la mode.</p>
         <p>Entre maîtrise de la lumière en studio et authenticité des espaces extérieurs, il façonne des récits visuels percutants. De la couverture événementielle haut de gamme à la photographie de produits soignée, son travail allie précision technique, élégance et audace.</p>
       </div>
