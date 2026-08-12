@@ -321,13 +321,18 @@ body.done .scroll-hint{opacity:1}
 /* ============ CLIENTS ============ */
 /* Paper island between two ink sections. Gradient bands hide the seams; the section
    marker and rule get local overrides so they read on the light background. */
-#clients{background:var(--paper);color:var(--ink);position:relative;overflow:hidden}
+/* Extra vertical padding so the heading and grid sit clear of the fade bands. */
+#clients{background:var(--paper);color:var(--ink);position:relative;overflow:hidden;
+  padding:clamp(90px,12vw,160px) 0}
 #clients .sec-head{border-bottom-color:rgba(20,16,14,.14)}
 #clients .sec-head h2{color:var(--ink)}
 /* .num keeps var(--brass) globally, which reads on paper */
-#clients .clients-fade{position:absolute;left:0;right:0;height:22vh;z-index:3;pointer-events:none}
-#clients .clients-fade.top{top:0;background:linear-gradient(to bottom,var(--ink) 0%,rgba(241,238,232,0) 100%)}
-#clients .clients-fade.bot{bottom:0;background:linear-gradient(to top,var(--ink) 0%,rgba(241,238,232,0) 100%)}
+/* Short, fast fades. Transparent stop uses ink at 0 alpha (not paper at 0 alpha) so
+   the ramp is a clean fade of the ink, not a colour interpolation between two hues
+   that produced a grey wash at 22vh. */
+#clients .clients-fade{position:absolute;left:0;right:0;height:7vh;z-index:3;pointer-events:none}
+#clients .clients-fade.top{top:0;background:linear-gradient(to bottom,var(--ink) 0%,rgba(20,16,14,0) 78%)}
+#clients .clients-fade.bot{bottom:0;background:linear-gradient(to top,var(--ink) 0%,rgba(20,16,14,0) 78%)}
 #clients .wrap{position:relative;z-index:2}
 
 .clients-grid{
