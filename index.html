@@ -226,8 +226,18 @@ body.done .scroll-hint{opacity:1}
 .sec-marker .rule{flex:1;height:1px;background:var(--line)}
 
 .work-grid{
-  display:grid;grid-template-columns:0.9fr 1.1fr;
+  display:grid;grid-template-columns:0.82fr 1.18fr;
   gap:clamp(32px,5vw,80px);align-items:center;
+}
+/* The orbit needs `gap + 0.475*rightColumn > 343px` to clear the text once the sphere
+   bleeds left. That only holds above ~1190px, so the two columns stack below 1280 —
+   at 1024 the orbs crossed the copy by 45px and clipped the right edge by 19px. */
+@media(max-width:1279px){
+  .work-grid{grid-template-columns:1fr;gap:56px}
+}
+/* Bleed only where the two columns actually exist, so there is a gutter to bleed into. */
+@media(min-width:1280px){
+  #sphere{margin-left:-10%;margin-right:-5%}
 }
 .work-copy p.lead{
   font-family:var(--display);font-size:clamp(21px,2.6vw,34px);
@@ -240,13 +250,10 @@ body.done .scroll-hint{opacity:1}
 /* ---- photo sphere ---- */
 #sphere{
   position:relative;
-  /* Must contain the orbit, or orbs spill over the heading above and the caption below.
-     Worst case from centre = radius 300 + half an orb at hover scale (42*1.35) + drift 11
-     = 368, so the box needs ~736px. At 70vh alone a 800px-tall screen gave 560px and
-     orbs overflowed by ~70px at both ends. */
-  /* Orbit at radius 210: 210 + 34*1.35 + 11 = 267 from centre, so ~534px of box,
-     plus room for the caption to clear it. */
-  height:clamp(600px,58vh,680px);
+  /* Must contain the orbit, or orbs spill over the marker above and the caption below.
+     Orbit at radius 275: 275 + half an orb at hover scale (42*1.35) + drift 11 = 343
+     from centre, so ~686px of box, plus room for the caption to clear it. */
+  height:clamp(760px,72vh,840px);
   perspective:1400px;
   cursor:grab;
   /* pan-y lets a vertical swipe scroll the page; horizontal drags spin the sphere */
@@ -258,7 +265,7 @@ body.done .scroll-hint{opacity:1}
    expressed in the parent's rotated basis and swing the photo around as it spins.
    Margins offset the box before any transform, so transform-origin is the true centre. */
 .orb{
-  position:absolute;left:50%;top:50%;width:68px;margin:-34px 0 0 -34px;
+  position:absolute;left:50%;top:50%;width:84px;margin:-42px 0 0 -42px;
   cursor:pointer;-webkit-tap-highlight-color:transparent;
   /* The wrapper is the element that carries the transform and gets promoted to its own
      compositing layer during a drag. Chrome can drop a child's border-radius clip on a
@@ -416,10 +423,7 @@ footer{
 
 /* ============ RESPONSIVE ============ */
 @media(max-width:1020px){
-  /* The sphere column would be too narrow to hold the orbit between 680 and 1020,
-     so the two columns stack here rather than clipping. */
-  .work-grid,.studio-grid,#print .print-grid{grid-template-columns:1fr}
-  .work-grid{gap:56px}
+  .studio-grid,#print .print-grid{grid-template-columns:1fr}
   .svc{grid-template-columns:repeat(2,1fr)}
   .contact-rows{grid-template-columns:1fr 1fr}
 }
@@ -1020,7 +1024,7 @@ document.documentElement.classList.add('js-anim');
   var driftT = 0;              /* running timestamp, advances even while dragging */
 
   function isMobile(){ return window.matchMedia('(max-width:680px)').matches; }
-  function radiusOf(){ return isMobile() ? 150 : 210; }
+  function radiusOf(){ return isMobile() ? 150 : 275; }
   /* Depth cues are tuned for the dense desktop sphere; the same ranges crush the
      sparser mobile one, leaving back orbs as faint dots. Compressed ranges on mobile
      keep them legible. Resolved once per frame, not per orb. */
