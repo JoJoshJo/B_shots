@@ -116,40 +116,14 @@ header .brand span{
 .nav-right{display:flex;align-items:center;gap:26px}
 .lang{display:flex;gap:7px;font-size:10px;letter-spacing:.16em;color:var(--dim)}
 .lang b{color:var(--bone);font-weight:500}
-.menu-btn{
-  display:flex;align-items:center;gap:11px;
-  font-size:10px;letter-spacing:.28em;text-transform:uppercase;
+.hnav{display:flex;align-items:center;gap:26px}
+.hnav a{
+  font-size:10px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--dim);transition:color .3s ease;
 }
-.menu-btn .bars{display:grid;gap:4px;width:20px}
-.menu-btn .bars i{height:1px;background:var(--bone);display:block;transition:transform .4s var(--ease)}
-body.nav-open .menu-btn .bars i:nth-child(1){transform:translateY(2.5px) rotate(13deg)}
-body.nav-open .menu-btn .bars i:nth-child(2){transform:translateY(-2.5px) rotate(-13deg)}
-
-#overlay{
-  position:fixed;inset:0;z-index:110;background:var(--ink-2);
-  clip-path:inset(0 0 100% 0);transition:clip-path .8s var(--ease);
-  display:flex;align-items:center;
-}
-body.nav-open #overlay{clip-path:inset(0 0 0 0)}
-#overlay ol{list-style:none;padding:0 var(--pad);width:100%}
-#overlay li{overflow:hidden}
-#overlay a{
-  display:block;font-family:var(--display);
-  font-size:clamp(34px,7vw,86px);line-height:1.12;padding:5px 0;
-  transform:translateY(105%);transition:transform .7s var(--ease),color .3s ease;
-}
-body.nav-open #overlay a{transform:translateY(0)}
-#overlay li:nth-child(1) a{transition-delay:.14s}
-#overlay li:nth-child(2) a{transition-delay:.20s}
-#overlay li:nth-child(3) a{transition-delay:.26s}
-#overlay li:nth-child(4) a{transition-delay:.32s}
-#overlay li:nth-child(5) a{transition-delay:.38s}
-#overlay li:nth-child(6) a{transition-delay:.44s}
-#overlay a:hover{color:var(--brass)}
-#overlay a em{
-  font-family:var(--sans);font-style:normal;font-size:10px;
-  letter-spacing:.28em;color:var(--brass);vertical-align:super;margin-right:14px;
-}
+.hnav a:hover{color:var(--bone)}
+/* Section currently in view — set by the scrollspy observer. */
+.hnav a.here{color:var(--brass)}
 
 /* ============ HERO ============ */
 #hero{
@@ -450,6 +424,9 @@ footer{
   .contact-rows{grid-template-columns:1fr 1fr}
 }
 @media(max-width:680px){
+  /* Four links plus EN/FR plus the logo will not fit on one line. The page is a
+     single scroll, so no replacement menu is needed. */
+  .hnav{display:none}
   /* Copy sits lower on mobile: the marquee is anchored to the bottom, so a large
      negative margin here opened a dead gap between the CTA and the frames. */
   .hero-inner{margin-top:-3vh}
@@ -507,21 +484,15 @@ document.documentElement.classList.add('js-anim');
     <span>Original&nbsp;Brave</span>
   </a>
   <div class="nav-right">
+    <nav class="hnav" id="hnav">
+      <a href="#work">Work</a>
+      <a href="#clients">Clients</a>
+      <a href="#studio">Studio</a>
+      <a href="#contact">Contact</a>
+    </nav>
     <div class="lang"><b>EN</b><span>/</span><span>FR</span></div>
-    <button class="menu-btn" id="mb"><span id="mbt">Menu</span><span class="bars"><i></i><i></i></span></button>
   </div>
 </header>
-
-<nav id="overlay">
-  <ol>
-    <li><a href="#work"><em>01</em>Work</a></li>
-    <li><a href="#clients"><em>02</em>Clients</a></li>
-    <li><a href="#print"><em>03</em>In Print</a></li>
-    <li><a href="#studio"><em>04</em>Studio</a></li>
-    <li><a href="#services"><em>05</em>Services</a></li>
-    <li><a href="#contact"><em>06</em>Contact</a></li>
-  </ol>
-</nav>
 
 <main id="top">
 
@@ -941,24 +912,34 @@ document.documentElement.classList.add('js-anim');
      popping in after it lifts. */
   buildMarquee();
 
-  /* ---------- header + menu ---------- */
+  /* ---------- header ---------- */
   var hd = document.getElementById('hd');
   window.addEventListener('scroll', function(){
     hd.classList.toggle('stuck', window.scrollY > 60);
   }, {passive:true});
 
-  var mb = document.getElementById('mb'), mbt = document.getElementById('mbt');
-  mb.addEventListener('click', function(){
-    var open = document.body.classList.toggle('nav-open');
-    document.body.classList.toggle('locked', open);
-    mbt.textContent = open ? 'Close' : 'Menu';
-  });
-  document.querySelectorAll('#overlay a').forEach(function(a){
-    a.addEventListener('click', function(){
-      document.body.classList.remove('nav-open','locked');
-      mbt.textContent='Menu';
-    });
-  });
+  /* Scrollspy: highlight the nav link whose section is in view. Same
+     IntersectionObserver pattern as the reveals — no library. */
+  var navLinks = [].slice.call(document.querySelectorAll('.hnav a'));
+  var navFor = {};
+  var spied = navLinks.map(function(a){
+    var id = a.getAttribute('href').slice(1);
+    navFor[id] = a;
+    return document.getElementById(id);
+  }).filter(Boolean);
+  if(spied.length){
+    var inView = {};
+    var spy = new IntersectionObserver(function(es){
+      es.forEach(function(e){ inView[e.target.id] = e.isIntersecting; });
+      /* Topmost section still in view wins, so scrolling down moves the mark
+         forward one section at a time. Nothing is marked over the hero. */
+      var active = null;
+      for(var i=0;i<spied.length;i++){ if(inView[spied[i].id]){ active = spied[i].id; break; } }
+      navLinks.forEach(function(a){ a.classList.remove('here'); });
+      if(active && navFor[active]) navFor[active].classList.add('here');
+    }, {rootMargin:'-45% 0px -45% 0px'});
+    spied.forEach(function(el){ spy.observe(el); });
+  }
 
   /* ---------- reveals ---------- */
   var io = new IntersectionObserver(function(es){
