@@ -220,13 +220,20 @@ body.done .scroll-hint{opacity:1}
 /* ============ STATEMENT ============ */
 /* No border-top: it would draw a hairline exactly where the hero's gradient
    lands on the ink, reintroducing the hard edge the fade exists to remove. */
-#statement{background:var(--ink)}
-.stmt-grid{display:grid;grid-template-columns:1fr 1.55fr;gap:clamp(30px,7vw,110px);align-items:start}
-.stmt-grid p.lead{
-  font-family:var(--display);font-size:clamp(21px,2.9vw,38px);
-  line-height:1.32;font-weight:400;
+/* Numeral + rule only: the pull quote does the work a heading used to. */
+.sec-marker{display:flex;align-items:center;gap:18px;margin-bottom:clamp(34px,4vw,56px)}
+.sec-marker .num{font-size:10px;letter-spacing:.3em;color:var(--brass);font-weight:500}
+.sec-marker .rule{flex:1;height:1px;background:var(--line)}
+
+.work-grid{
+  display:grid;grid-template-columns:0.9fr 1.1fr;
+  gap:clamp(32px,5vw,80px);align-items:center;
 }
-.stmt-grid p.lead b{color:var(--brass);font-weight:400;font-style:italic}
+.work-copy p.lead{
+  font-family:var(--display);font-size:clamp(21px,2.6vw,34px);
+  line-height:1.32;font-weight:400;color:var(--bone);
+}
+.work-copy p.lead b{color:var(--brass);font-weight:400;font-style:italic}
 .stmt-body p{color:var(--dim);font-size:15px;line-height:1.85;margin-top:20px;max-width:52ch}
 
 /* ============ WORK ============ */
@@ -237,7 +244,9 @@ body.done .scroll-hint{opacity:1}
      Worst case from centre = radius 300 + half an orb at hover scale (42*1.35) + drift 11
      = 368, so the box needs ~736px. At 70vh alone a 800px-tall screen gave 560px and
      orbs overflowed by ~70px at both ends. */
-  height:clamp(750px,70vh,820px);
+  /* Orbit at radius 210: 210 + 34*1.35 + 11 = 267 from centre, so ~534px of box,
+     plus room for the caption to clear it. */
+  height:clamp(600px,58vh,680px);
   perspective:1400px;
   cursor:grab;
   /* pan-y lets a vertical swipe scroll the page; horizontal drags spin the sphere */
@@ -249,7 +258,7 @@ body.done .scroll-hint{opacity:1}
    expressed in the parent's rotated basis and swing the photo around as it spins.
    Margins offset the box before any transform, so transform-origin is the true centre. */
 .orb{
-  position:absolute;left:50%;top:50%;width:84px;margin:-42px 0 0 -42px;
+  position:absolute;left:50%;top:50%;width:68px;margin:-34px 0 0 -34px;
   cursor:pointer;-webkit-tap-highlight-color:transparent;
   /* The wrapper is the element that carries the transform and gets promoted to its own
      compositing layer during a drag. Chrome can drop a child's border-radius clip on a
@@ -407,7 +416,10 @@ footer{
 
 /* ============ RESPONSIVE ============ */
 @media(max-width:1020px){
-  .stmt-grid,.studio-grid,#print .print-grid{grid-template-columns:1fr}
+  /* The sphere column would be too narrow to hold the orbit between 680 and 1020,
+     so the two columns stack here rather than clipping. */
+  .work-grid,.studio-grid,#print .print-grid{grid-template-columns:1fr}
+  .work-grid{gap:56px}
   .svc{grid-template-columns:repeat(2,1fr)}
   .contact-rows{grid-template-columns:1fr 1fr}
 }
@@ -418,6 +430,7 @@ footer{
   /* Six frames instead of eleven (JS drops the rest) and they run wider, so they
      still read at phone size. */
   .hero-mail{font-size:10px;letter-spacing:.18em}
+  .work-grid{gap:48px}
   .orb{width:76px;margin:-38px 0 0 -38px}
   /* Mobile orbit: 150 + 38*1.35 + 11 = 212 from centre, so the box needs ~424px. */
   #sphere{height:clamp(470px,56vh,560px)}
@@ -484,23 +497,22 @@ document.documentElement.classList.add('js-anim');
   <div class="scroll-hint"><span class="rule"></span>Scroll</div>
 </section>
 
-<section id="statement">
-  <div class="wrap">
-    <div class="stmt-grid">
-      <p class="lead rv">I photograph people and products as if they <b>already belonged on a cover.</b></p>
-      <div class="stmt-body rv">
-        <p>Original Brave Shots is a portrait and fashion studio working across studio and location. Every frame is lit, styled and directed — not caught. The work runs from editorial portraiture and campaign imagery to event coverage and product photography for brands.</p>
-        <p>Art direction, shooting and retouching are handled in-house, which means the image you approve is the image that ships.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
 <section id="work">
   <div class="wrap">
-    <div class="sec-head rv"><span class="num">01</span><h2>My Work</h2></div>
-    <div id="sphere"><div id="sphere-inner"></div></div>
-    <div class="sphere-cap" id="spherecap"></div>
+    <div class="sec-marker rv"><span class="num">01</span><span class="rule"></span></div>
+    <div class="work-grid">
+      <div class="work-copy">
+        <p class="lead rv">Entre maîtrise de la lumière en studio et authenticité des espaces extérieurs, <b>il façonne des récits visuels percutants.</b></p>
+        <div class="stmt-body rv">
+          <p>Original Brave Shots est la signature visuelle de Précieux Tchibozo, photographe passionné dédié au portrait d'art et à la mode.</p>
+          <p>Entre maîtrise de la lumière en studio et authenticité des espaces extérieurs, il façonne des récits visuels percutants. De la couverture événementielle haut de gamme à la photographie de produits soignée, son travail allie précision technique, élégance et audace.</p>
+        </div>
+      </div>
+      <div class="work-sphere">
+        <div id="sphere"><div id="sphere-inner"></div></div>
+        <div class="sphere-cap" id="spherecap"></div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -1008,7 +1020,7 @@ document.documentElement.classList.add('js-anim');
   var driftT = 0;              /* running timestamp, advances even while dragging */
 
   function isMobile(){ return window.matchMedia('(max-width:680px)').matches; }
-  function radiusOf(){ return isMobile() ? 150 : 300; }
+  function radiusOf(){ return isMobile() ? 150 : 210; }
   /* Depth cues are tuned for the dense desktop sphere; the same ranges crush the
      sparser mobile one, leaving back orbs as faint dots. Compressed ranges on mobile
      keep them legible. Resolved once per frame, not per orb. */
