@@ -242,23 +242,41 @@ body.done .scroll-hint{opacity:1}
 }
 .sphere-float #sphere{width:100%;height:100%}
 .sphere-float .sphere-cap{margin-top:14px}
-/* Designed bleed into the wrap's right padding. Below 1400 the wrap hits the viewport
-   and any negative margin here spills past it, so the bleed is scoped to wider desktops. */
+/* A transparent 1px float that pushes the sphere down so the body text sits beside
+   the upper cap of the circle — that is where the shape's per-line variation is
+   largest and the justified right edge visibly traces the arc. Text and sphere are
+   both shorter than the sphere at 1440, so true centring is impossible; this is the
+   next-best framing. Zero-height below 1400 where the natural layout already gives
+   a good spread (body wraps the lower cap when the column narrows). */
+.sphere-spacer{float:right;clear:right;width:1px;height:0;shape-outside:inset(0);pointer-events:none}
 @media(min-width:1400px){
   .sphere-float{margin-right:-6%}
+  /* 100px pushes body text into the sphere's upper cap where the shape curves
+     hard, giving a visible ~65px right-edge spread that traces the arc. H=120
+     would give 159px spread but hangs the sphere 491px below text; 100 is the
+     lowest value that hits the task's 60px target while keeping the sphere
+     closer to the copy. */
+  .sphere-spacer{height:100px}
+}
+/* Mobile stacks and no shape is applied, so the spacer would just be an empty
+   0×0 sibling — harmless, but hide it explicitly for clarity. */
+@media(max-width:1023px){
+  .sphere-spacer{display:none}
 }
 
 .work-copy p.lead{
-  font-family:var(--display);font-size:clamp(21px,2.6vw,34px);
-  line-height:1.32;font-weight:400;color:var(--bone);
+  font-family:var(--display);font-size:clamp(30px,3.4vw,44px);
+  line-height:1.24;font-weight:400;color:var(--bone);
+  margin-bottom:34px;
 }
 .work-copy p.lead b{color:var(--brass);font-weight:400;font-style:italic}
 /* Justify so every line ends on the shape boundary — that is what makes the curve
    read as a curve. Hyphens on prevent the "rivers" of white space that justified
    narrow columns otherwise produce; lang="fr" on the markup gives correct French
-   hyphenation. The pull quote stays ragged — at 34px justification opens ugly gaps. */
-.stmt-body p{color:var(--dim);font-size:15px;line-height:1.85;margin-top:20px;
+   hyphenation. The pull quote stays ragged — at this size justification opens ugly gaps. */
+.stmt-body p{color:var(--dim);font-size:15px;line-height:2.0;
   text-align:justify;hyphens:auto;-webkit-hyphens:auto}
+.stmt-body p + p{margin-top:26px}
 .work-copy::after{content:"";display:block;clear:both}
 
 /* shape-outside on a 720px float is meaningless at phone/tablet width — it would
@@ -526,6 +544,7 @@ document.documentElement.classList.add('js-anim');
   <div class="wrap">
     <div class="sec-marker rv"><span class="num">01</span><span class="rule"></span></div>
     <div class="work-copy">
+      <div class="sphere-spacer"></div>
       <div class="sphere-float">
         <div id="sphere"><div id="sphere-inner"></div></div>
         <div class="sphere-cap" id="spherecap"></div>
