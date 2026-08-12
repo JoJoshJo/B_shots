@@ -372,21 +372,82 @@ body.done .scroll-hint{opacity:1}
 
 /* ============ CONTACT ============ */
 #contact{text-align:left}
-.contact-lead{
-  font-family:var(--display);font-size:clamp(34px,6.4vw,92px);line-height:1.02;font-weight:400;
+/* Two-panel card. Grid collapses to a single column under 900px so the form
+   drops beneath the details. Corner plus-marks are pseudo-elements on the card
+   itself; the child mask keeps them from being clipped by overflow:hidden. */
+.contact-card{
+  position:relative;background:var(--ink-2);
+  border:1px solid var(--line);border-radius:4px;overflow:hidden;
+  display:grid;grid-template-columns:1.4fr 1fr;
 }
-.contact-lead a{
-  border-bottom:1px solid var(--line);transition:border-color .4s ease,color .4s ease;
-  font-style:italic;color:var(--brass);
+.contact-card::before,.contact-card::after,
+.contact-card > .cx-tl,.contact-card > .cx-tr,
+.contact-card > .cx-bl,.contact-card > .cx-br{
+  position:absolute;font-family:var(--sans);font-size:12px;line-height:1;
+  color:var(--brass);pointer-events:none;z-index:2;font-weight:300;
 }
-.contact-lead a:hover{border-color:var(--brass)}
-.contact-rows{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:34px;
-  margin-top:64px;padding-top:30px;border-top:1px solid var(--line);
+/* Four brass + marks, half outside each corner of the card. */
+.cx-tl{content:"+";top:-6px;left:-4px}
+.cx-tr{content:"+";top:-6px;right:-4px}
+.cx-bl{content:"+";bottom:-6px;left:-4px}
+.cx-br{content:"+";bottom:-6px;right:-4px}
+
+.contact-info{padding:clamp(28px,4vw,48px)}
+.contact-info h3{
+  font-family:var(--display);font-size:clamp(30px,4vw,52px);
+  font-weight:400;line-height:1.05;color:var(--bone);
 }
-.contact-rows h5{font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--dim);margin-bottom:12px}
-.contact-rows a,.contact-rows p{font-size:15px;line-height:1.7;transition:color .3s ease}
-.contact-rows a:hover{color:var(--brass)}
+.contact-info .lead{color:var(--dim);font-size:15px;line-height:1.8;max-width:46ch;margin-top:20px}
+.contact-list{list-style:none;padding:0;margin:34px 0 0;display:grid;gap:18px}
+.contact-list li{display:flex;align-items:center;gap:14px}
+.contact-icon{
+  flex:0 0 42px;width:42px;height:42px;border-radius:6px;
+  background:rgba(239,231,219,.05);
+  display:grid;place-items:center;color:var(--brass);
+}
+.contact-icon svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.contact-list .label{font-size:13px;color:var(--bone);letter-spacing:.02em}
+.contact-list .value{display:block;margin-top:2px;font-size:12px;color:var(--dim);transition:color .3s ease}
+.contact-list a:hover .value{color:var(--brass)}
+
+.contact-form{
+  padding:clamp(24px,3vw,36px);
+  background:rgba(239,231,219,.03);border-left:1px solid var(--line);
+  display:flex;flex-direction:column;gap:16px;
+}
+.contact-form label{
+  display:block;font-size:10px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--dim);margin-bottom:8px;
+}
+.contact-form input,.contact-form select,.contact-form textarea{
+  width:100%;background:transparent;border:1px solid var(--line);border-radius:3px;
+  padding:11px 13px;color:var(--bone);font-family:var(--sans);font-size:14px;
+  transition:border-color .25s ease;
+}
+.contact-form input:focus,.contact-form select:focus,.contact-form textarea:focus{
+  outline:none;border-color:var(--brass);
+}
+.contact-form textarea{resize:vertical;min-height:96px}
+.contact-form select{
+  /* strip the native chevron so it matches the input skin, then draw one in brass. */
+  -webkit-appearance:none;-moz-appearance:none;appearance:none;
+  background-image:linear-gradient(45deg,transparent 50%,var(--brass) 50%),linear-gradient(-45deg,transparent 50%,var(--brass) 50%);
+  background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%;
+  background-size:5px 5px,5px 5px;background-repeat:no-repeat;
+  padding-right:34px;
+}
+.contact-form select option{background:var(--ink-2);color:var(--bone)}
+.contact-submit{
+  width:100%;background:var(--brass);color:#1A1206;
+  padding:14px;border-radius:3px;font-size:11px;letter-spacing:.22em;
+  text-transform:uppercase;font-weight:500;
+  transition:background .3s ease;cursor:pointer;
+}
+.contact-submit:hover{background:#D9A94E}
+.contact-submit:disabled{cursor:default;opacity:.7}
+.contact-status{font-size:14px;line-height:1.6;margin-top:4px}
+.contact-status.ok{color:var(--bone)}
+.contact-status.err{color:var(--brass)}
 footer{
   padding:28px var(--pad);border-top:1px solid var(--line);
   display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;
@@ -445,7 +506,12 @@ footer{
 @media(max-width:1020px){
   .studio-grid,#print .print-grid{grid-template-columns:1fr}
   .svc{grid-template-columns:repeat(2,1fr)}
-  .contact-rows{grid-template-columns:1fr 1fr}
+}
+/* Contact card stacks its two panels; the form's border-left flips to a border-top
+   at the seam so the divider stays visible in the vertical stack. */
+@media(max-width:899px){
+  .contact-card{grid-template-columns:1fr}
+  .contact-form{border-left:none;border-top:1px solid var(--line)}
 }
 @media(max-width:680px){
   /* Four links plus EN/FR plus the logo will not fit on one line. The page is a
@@ -461,7 +527,9 @@ footer{
   /* 44px minimum tap targets */
   .svc{grid-template-columns:1fr}
   .cols{grid-template-columns:1fr}
-  .contact-rows{grid-template-columns:1fr}
+  /* 44px minimum tap targets on form fields */
+  .contact-form input,.contact-form select,.contact-form textarea{padding:13px 14px;font-size:16px}
+  .contact-submit{padding:16px}
   .client{grid-template-columns:64px 1fr;row-gap:6px}
   .client .tag{grid-column:2}
   #lb .nav{width:38px;height:38px}
@@ -615,20 +683,70 @@ document.documentElement.classList.add('js-anim');
 <section id="contact">
   <div class="wrap">
     <div class="sec-head rv"><span class="num">06</span><h2>Contact</h2></div>
-    <p class="contact-lead rv">Have something to shoot?<br><a href="mailto:originalbraveshots@gmail.com">Write to the studio.</a></p>
-    <div class="contact-rows rv">
-      <div>
-        <h5>Email</h5>
-        <a href="mailto:originalbraveshots@gmail.com">originalbraveshots@gmail.com</a>
+    <div class="contact-card rv">
+      <span class="cx-tl">+</span><span class="cx-tr">+</span>
+      <span class="cx-bl">+</span><span class="cx-br">+</span>
+
+      <div class="contact-info">
+        <h3>Have something to shoot?</h3>
+        <p class="lead">Tell me about the project — the idea, the date, and what you need delivered. I reply within one business day.</p>
+        <ul class="contact-list">
+          <li>
+            <span class="contact-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></span>
+            <a href="mailto:originalbraveshots@gmail.com">
+              <span class="label">Email</span>
+              <span class="value">originalbraveshots@gmail.com</span>
+            </a>
+          </li>
+          <li>
+            <span class="contact-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 4h3l2 5-2.5 1.5a11 11 0 006 6L15 14l5 2v3a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/></svg></span>
+            <a href="tel:+2290150477316">
+              <span class="label">Phone</span>
+              <span class="value">+229 01 50 47 73 16</span>
+            </a>
+          </li>
+          <li>
+            <span class="contact-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 21s-7-6.5-7-12a7 7 0 0114 0c0 5.5-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg></span>
+            <div>
+              <span class="label">Studio</span>
+              <span class="value">Abomey-Calavi, Bénin</span>
+            </div>
+          </li>
+          <li>
+            <span class="contact-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></span>
+            <a href="https://www.instagram.com/original_brave_shots" target="_blank" rel="noopener">
+              <span class="label">Social</span>
+              <span class="value">@original_brave_shots</span>
+            </a>
+          </li>
+        </ul>
       </div>
-      <div>
-        <h5>Instagram</h5>
-        <a href="https://www.instagram.com/original_brave_shots" target="_blank" rel="noopener">@original_brave_shots</a>
-      </div>
-      <div>
-        <h5>Facebook</h5>
-        <a href="https://www.facebook.com/profile.php?id=100088776982546" target="_blank" rel="noopener">Original Brave Shots</a>
-      </div>
+
+      <form class="contact-form" id="contactForm"
+            action="https://formspree.io/f/PLACEHOLDER_ID" method="POST">
+        <input type="hidden" name="_subject" value="Nouvelle demande — originalbraveshots.com">
+        <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" style="display:none">
+
+        <div><label for="cf-name">Nom</label>
+          <input id="cf-name" type="text" name="name" required autocomplete="name"></div>
+        <div><label for="cf-email">Email</label>
+          <input id="cf-email" type="email" name="email" required autocomplete="email"></div>
+        <div><label for="cf-phone">Téléphone</label>
+          <input id="cf-phone" type="tel" name="phone" autocomplete="tel"></div>
+        <div><label for="cf-project">Type de projet</label>
+          <select id="cf-project" name="project">
+            <option>Portrait</option>
+            <option>Mode</option>
+            <option>Événement</option>
+            <option>Produit</option>
+            <option>Autre</option>
+          </select></div>
+        <div><label for="cf-msg">Message</label>
+          <textarea id="cf-msg" name="message" rows="4" required></textarea></div>
+
+        <button type="submit" class="contact-submit">Envoyer</button>
+        <div class="contact-status" id="contactStatus" role="status" aria-live="polite"></div>
+      </form>
     </div>
   </div>
 </section>
@@ -1333,6 +1451,38 @@ document.documentElement.classList.add('js-anim');
   render();
   observe();
   requestAnimationFrame(tick);
+
+  /* ---------- contact form ---------- */
+  /* Progressive enhancement: without this script the form submits normally to
+     Formspree and the page navigates to their confirmation. With JS, we intercept,
+     post via fetch so the visitor stays on the page, and swap the form for a
+     confirmation line — or surface a fallback email on network/API failure. */
+  var cform = document.getElementById('contactForm');
+  if(cform){
+    cform.addEventListener('submit', function(e){
+      e.preventDefault();
+      var btn = cform.querySelector('.contact-submit');
+      var status = document.getElementById('contactStatus');
+      var originalText = btn.textContent;
+      btn.disabled = true; btn.textContent = 'Envoi...';
+      status.className = 'contact-status'; status.textContent = '';
+      fetch(cform.action, {
+        method: 'POST',
+        body: new FormData(cform),
+        headers: {'Accept': 'application/json'}
+      }).then(function(r){
+        if(r.ok){
+          cform.innerHTML = '<div class="contact-status ok">Merci. Je vous réponds sous 24 h.</div>';
+        } else {
+          throw new Error('bad response');
+        }
+      }).catch(function(){
+        btn.disabled = false; btn.textContent = originalText;
+        status.className = 'contact-status err';
+        status.textContent = "L'envoi a échoué. Écrivez-moi directement à originalbraveshots@gmail.com.";
+      });
+    });
+  }
 })();
 </script>
 </body>
