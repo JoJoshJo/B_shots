@@ -226,7 +226,7 @@ body.done .scroll-hint{opacity:1}
 .sec-marker .rule{flex:1;height:1px;background:var(--line)}
 
 .work-grid{
-  display:grid;grid-template-columns:0.82fr 1.18fr;
+  display:grid;grid-template-columns:0.62fr 1.38fr;
   gap:clamp(32px,5vw,80px);align-items:center;
 }
 /* The orbit needs `gap + 0.475*rightColumn > 343px` to clear the text once the sphere
@@ -237,14 +237,34 @@ body.done .scroll-hint{opacity:1}
 }
 /* Bleed only where the two columns actually exist, so there is a gutter to bleed into. */
 @media(min-width:1280px){
-  #sphere{margin-left:-10%;margin-right:-5%}
+  /* -22% pushes the orbit into the text column's horizontal band. Far orbs pass
+     behind the copy (scrim + z-index handle legibility); the draw loop clamps
+     front-half orbs so they never reach the type. */
+  #sphere{margin-left:-22%;margin-right:-5%}
+}
+/* The copy paints above every orb: #sphere's perspective makes it one stacking
+   context, so a plain z-index:2 on the column sits over all of it. Ragged right
+   edge is deliberate — no justification, no hyphens. */
+.work-copy{position:relative;z-index:2}
+/* Soft backing so far-side orbs read as texture behind the type. Ink-on-ink, so it
+   is invisible against the plain background and only becomes apparent where an orb
+   passes behind the text. Only exists on the two-column layout — orbs can only sit
+   behind the copy there, and on the stacked layouts its -64px wings poked past the
+   viewport and inflated scrollWidth. */
+@media(min-width:1280px){
+  .work-copy::before{
+    content:"";position:absolute;inset:-48px -64px;z-index:-1;pointer-events:none;
+    background:radial-gradient(ellipse 62% 52% at 42% 50%,
+      rgba(20,16,14,.92) 0%,rgba(20,16,14,.92) 44%,rgba(20,16,14,0) 78%);
+  }
 }
 .work-copy p.lead{
   font-family:var(--display);font-size:clamp(21px,2.6vw,34px);
   line-height:1.32;font-weight:400;color:var(--bone);
+  max-width:13ch;text-wrap:balance;
 }
 .work-copy p.lead b{color:var(--brass);font-weight:400;font-style:italic}
-.stmt-body p{color:var(--dim);font-size:15px;line-height:1.85;margin-top:20px;max-width:52ch}
+.stmt-body p{color:var(--dim);font-size:15px;line-height:1.85;margin-top:20px;max-width:32ch;text-wrap:pretty}
 
 /* ============ WORK ============ */
 /* ---- photo sphere ---- */
@@ -1078,6 +1098,7 @@ document.documentElement.classList.add('js-anim');
       return {el:el, p:p, cx:0, cy:0, cz:0, tx:0, ty:0, tz:0, fresh:true, hot:false};
     });
     layout();
+    measureClamp();
     setCap(null);
     /* Paint once synchronously. rAF does not run in a background tab, so without this
        a sphere built there would sit unpositioned until the tab was focused. */
@@ -1097,6 +1118,30 @@ document.documentElement.classList.add('js-anim');
       if(o.fresh){ o.cx = o.tx; o.cy = o.ty; o.cz = o.tz; o.fresh = false; }
     });
   }
+
+  /* ---- front-orb clamp ----
+     With the sphere bleeding into the text band, far-side orbs are allowed behind
+     the copy (the column's z-index and scrim keep it legible) but front-half orbs
+     must never reach it. clampX is the viewport x that a front orb's left edge may
+     not cross: the widest text element's right edge plus a 24px gap. Measured, not
+     assumed, and only armed on the two-column desktop layout. */
+  var clampX = -Infinity, clampCx = 0, clampHalf = 36;
+  function measureClamp(){
+    clampX = -Infinity;
+    if(isMobile() || !window.matchMedia('(min-width:1280px)').matches) return;
+    var copy = document.querySelector('.work-copy');
+    if(!copy || !orbs.length) return;
+    var els = copy.querySelectorAll('p');
+    var right = 0;
+    els.forEach(function(e){ right = Math.max(right, e.getBoundingClientRect().right); });
+    if(!right) return;
+    var sr = sphere.getBoundingClientRect();
+    clampCx = sr.left + sr.width/2;
+    clampHalf = orbs[0].el.offsetWidth/2;
+    clampX = right + 24;
+  }
+  /* Text width settles late (webfonts); re-measure once they land. */
+  window.addEventListener('load', function(){ setTimeout(measureClamp, 400); });
 
   function draw(){
     var R  = radiusOf(), D = depthOf();
@@ -1127,6 +1172,23 @@ document.documentElement.classList.add('js-anim');
       var t = (depth/R + 1)/2;               /* 0 at the back, 1 at the front */
       if(t < 0) t = 0; else if(t > 1) t = 1;
       var s = (D.sBase + D.sRange*t) * (o.hot ? 1.35 : 1);
+
+      /* Front-half orbs (t > .5) slide along the text boundary instead of crossing
+         it. Screen position includes the container's perspective divide — a near orb
+         renders k = 1400/(1400 - depth) times further from centre than its translate,
+         so the boundary is mapped back through k before comparing. The correction is
+         applied along the screen-x direction of the rotated frame, (cb, 0, sb): that
+         vector leaves z1 — and therefore depth, k, screen y, scale, opacity and paint
+         order — exactly as they were. Far orbs pass free. */
+      if(t > 0.5 && clampX > -Infinity){
+        var xr = px*cb + pz*sb;
+        var k = 1400/(1400 - depth);
+        var minXr = (clampX - clampCx)/k + clampHalf*s;
+        if(xr < minXr){
+          var dlt = minXr - xr;
+          px += dlt*cb; pz += dlt*sb;
+        }
+      }
 
       /* Billboarding: the exact inverse of the parent rotation, so every photo stays
          screen-aligned and upright. inverse(Rx(a)·Ry(b)) === Ry(-b)·Rx(-a). */
@@ -1191,7 +1253,7 @@ document.documentElement.classList.add('js-anim');
   sphere.addEventListener('pointerup', endDrag);
   sphere.addEventListener('pointercancel', endDrag);
   sphere.addEventListener('lostpointercapture', endDrag);
-  window.addEventListener('resize', layout);
+  window.addEventListener('resize', function(){ layout(); measureClamp(); });
 
   /* ---------- clients ---------- */
   var CLIENTS = [
