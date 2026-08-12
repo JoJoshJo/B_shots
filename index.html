@@ -118,16 +118,10 @@ header .brand span{
   font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim);
 }
 .nav-right{display:flex;align-items:center;gap:26px}
-.lang{display:flex;gap:7px;font-size:10px;letter-spacing:.16em;color:var(--dim)}
-.lang b{color:var(--bone);font-weight:500}
-
 /* ---- header over the light hero ---- */
 header.on-paper .brand span,
-header.on-paper .lang,
-header.on-paper .lang b,
 header.on-paper .hnav a{color:var(--ink)}
-header.on-paper .brand span,
-header.on-paper .lang{opacity:.72}
+header.on-paper .brand span{opacity:.72}
 header.on-paper .hnav a{opacity:.7}
 header.on-paper .hnav a:hover{opacity:1;color:var(--ink)}
 header.on-paper .hnav a.here{opacity:1;color:var(--brass)}
@@ -335,9 +329,13 @@ body.done .scroll-hint{opacity:1}
   border-bottom:1px solid var(--line);
 }
 .skill-cell:nth-child(odd){background:rgba(239,231,219,.02)}
-.skill-cell.empty{background:rgba(239,231,219,.02)}
+/* Border seams. The three .plus spans are trailing children of the grid, so any
+   nth-last-child / :last-child counts THEM, not cells — every seam rule counts from
+   the front with nth-child, which the plus spans can't disturb. Seven cells, 4 cols:
+   row one is 1-4, row two is 5-7. Clear the right seam on the last column (cell 4)
+   and the bottom seam on the whole last row (cells 5-7). */
 .skills-grid > .skill-cell:nth-child(4n){border-right:none}
-.skills-grid > .skill-cell:nth-last-child(-n+4){border-bottom:none}
+.skills-grid > .skill-cell:nth-child(n+5){border-bottom:none}
 .skill-cell .ico{color:var(--brass);display:inline-flex}
 .skill-cell .ico svg{width:22px;height:22px;stroke:currentColor;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
 .skill-cell h3{
@@ -362,13 +360,18 @@ body.done .scroll-hint{opacity:1}
   .skills-grid{grid-template-columns:repeat(2,1fr)}
   .skills-grid > .skill-cell{border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
   .skills-grid > .skill-cell:nth-child(2n){border-right:none}
-  .skills-grid > .skill-cell:nth-last-child(-n+2){border-bottom:none}
+  /* Two columns, seven cells: rows are (1,2)(3,4)(5,6)(7). Re-arm the bottom seam on
+     cells 5-6 (row three now has a row below it), and clear only cell 7's. */
+  .skills-grid > .skill-cell:nth-child(n+5){border-bottom:1px solid var(--line)}
+  .skills-grid > .skill-cell:nth-child(n+7){border-bottom:none}
   .skills-grid .plus{display:none}
 }
 @media(max-width:559px){
   .skills-grid{grid-template-columns:1fr}
   .skills-grid > .skill-cell{border-right:none;border-bottom:1px solid var(--line)}
-  .skills-grid > .skill-cell:last-child{border-bottom:none}
+  /* Single column: cell 7 is the last, front-counted so the trailing plus spans
+     (which :last-child would catch instead) don't matter. */
+  .skills-grid > .skill-cell:nth-child(n+7){border-bottom:none}
 }
 
 /* Software row — centred beneath the grid. */
@@ -399,7 +402,9 @@ body.done .scroll-hint{opacity:1}
   padding:clamp(90px,12vw,160px) 0}
 #clients .sec-head{border-bottom-color:rgba(20,16,14,.14)}
 #clients .sec-head h2{color:var(--ink)}
-/* .num keeps var(--brass) globally, which reads on paper */
+/* Brass on paper is only 2.28:1 — too low for the small numeral. Ink at 55% (your
+   spec) lands at 4.01:1, still under AA for small text, so bumped to 62% → 5.04:1. */
+#clients .sec-head .num{color:rgba(20,16,14,.62)}
 
 .clients-grid{
   position:relative;display:grid;grid-template-columns:repeat(3,1fr);
@@ -427,12 +432,14 @@ body.done .scroll-hint{opacity:1}
 }
 .client-cell .label{
   font-size:9px;letter-spacing:.24em;text-transform:uppercase;
-  color:rgba(20,16,14,.45);
+  color:rgba(20,16,14,.62);
 }
 /* Sixth cell is the CTA */
 a.client-cell{text-decoration:none;cursor:pointer}
 a.client-cell:hover{background:rgba(200,151,62,.10)}
-a.client-cell:hover .name{color:var(--brass)}
+/* Name stays ink on hover; the brass tint lives only on the cell background so the
+   text keeps its 15.9:1 ratio rather than dropping to brass-on-paper 2.28:1. */
+a.client-cell:hover .name{color:var(--ink)}
 
 /* Plus marks at the two interior grid crossings. 14px, positioned dead-centre on
    each row/column intersection. Hidden on mobile where the grid reflows to 2 cols. */
@@ -601,9 +608,30 @@ footer{
   .contact-card{grid-template-columns:1fr}
   .contact-form{border-left:none;border-top:1px solid var(--line)}
 }
+/* Bottom navigation — base state is hidden; the ≤680px query below reveals it. These
+   rules precede the query so its display:flex wins the source-order tie (a media query
+   adds no specificity). Fixed to the bottom edge where a thumb reaches; mirrors the
+   desktop scrollspy via .here. */
+.mobnav{
+  display:none;position:fixed;left:0;right:0;bottom:0;z-index:60;
+  height:56px;
+  background:rgba(20,16,14,.92);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  border-top:1px solid var(--line);
+}
+.mobnav a{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  min-width:44px;min-height:44px;
+  font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--dim);text-decoration:none;transition:color .3s ease;
+}
+.mobnav a.here{color:var(--brass)}
+/* Hidden while the lightbox is open so it never sits over the photo controls. */
+body.locked .mobnav{display:none}
 @media(max-width:680px){
-  /* Four links plus EN/FR plus the logo will not fit on one line. The page is a
-     single scroll, so no replacement menu is needed. */
+  /* The header row can't hold four links plus the logo at phone width. The inline
+     nav hides and the fixed bottom bar (.mobnav) takes over — the page is ~8 screens
+     tall, so a persistent, thumb-reachable nav matters. */
   .hnav{display:none}
   /* Six frames instead of eleven (JS drops the rest) and they run wider, so they
      still read at phone size. */
@@ -617,6 +645,13 @@ footer{
   .contact-submit{padding:16px}
   #lb .nav{width:38px;height:38px}
   #lb .prev{left:6px}#lb .next{right:6px}
+  /* Bigger body copy for phones: 13.5/13/12 read as too small on a handset. */
+  .skill-cell p{font-size:15px}
+  .contact-list .label{font-size:14px}
+  .contact-list .value{font-size:14px}
+  /* Clear the fixed bottom bar so the footer's last line isn't hidden under it. */
+  footer{padding-bottom:56px}
+  .mobnav{display:flex}
 }
 @media(prefers-reduced-motion:reduce){
   *{transition-duration:.01ms!important;animation-duration:.01ms!important}
@@ -656,7 +691,6 @@ document.documentElement.classList.add('js-anim');
       <a href="#clients">Clients</a>
       <a href="#contact">Contact</a>
     </nav>
-    <div class="lang"><b>EN</b><span>/</span><span>FR</span></div>
   </div>
 </header>
 
@@ -730,7 +764,6 @@ document.documentElement.classList.add('js-anim');
         <h3>Design graphique</h3>
         <p>Mise en page et supports visuels autour de l'image.</p>
       </div>
-      <div class="skill-cell empty" aria-hidden="true"></div>
       <span class="plus p1" aria-hidden="true">+</span>
       <span class="plus p2" aria-hidden="true">+</span>
       <span class="plus p3" aria-hidden="true">+</span>
@@ -854,6 +887,13 @@ document.documentElement.classList.add('js-anim');
   <span>Original Brave Shots © 2026</span>
   <span>Précieux Tchibozo — Portrait &amp; Fashion</span>
 </footer>
+
+<nav class="mobnav" aria-label="Sections">
+  <a href="#work">Work</a>
+  <a href="#skills">Savoir-faire</a>
+  <a href="#clients">Clients</a>
+  <a href="#contact">Contact</a>
+</nav>
 
 <div id="lb">
   <button class="nav prev" id="lbp" aria-label="Previous">‹</button>
@@ -1238,13 +1278,17 @@ document.documentElement.classList.add('js-anim');
 
   /* Scrollspy: highlight the nav link whose section is in view. Same
      IntersectionObserver pattern as the reveals — no library. */
-  var navLinks = [].slice.call(document.querySelectorAll('.hnav a'));
+  /* Both nav bars share the spy: the desktop header nav and the mobile bottom bar
+     each contribute an anchor per section, so navFor[id] holds a list. */
+  var navLinks = [].slice.call(document.querySelectorAll('.hnav a, .mobnav a'));
   var navFor = {};
-  var spied = navLinks.map(function(a){
+  var seen = {};
+  var spied = [];
+  navLinks.forEach(function(a){
     var id = a.getAttribute('href').slice(1);
-    navFor[id] = a;
-    return document.getElementById(id);
-  }).filter(Boolean);
+    (navFor[id] = navFor[id] || []).push(a);
+    if(!seen[id]){ seen[id] = true; var el = document.getElementById(id); if(el) spied.push(el); }
+  });
   if(spied.length){
     var inView = {};
     var spy = new IntersectionObserver(function(es){
@@ -1254,7 +1298,7 @@ document.documentElement.classList.add('js-anim');
       var active = null;
       for(var i=0;i<spied.length;i++){ if(inView[spied[i].id]){ active = spied[i].id; break; } }
       navLinks.forEach(function(a){ a.classList.remove('here'); });
-      if(active && navFor[active]) navFor[active].classList.add('here');
+      if(active && navFor[active]) navFor[active].forEach(function(a){ a.classList.add('here'); });
     }, {rootMargin:'-45% 0px -45% 0px'});
     spied.forEach(function(el){ spy.observe(el); });
   }
@@ -1484,7 +1528,7 @@ document.documentElement.classList.add('js-anim');
     if(!dragging) return;
     var dx = e.clientX - lastX, dy = e.clientY - lastY;
     lastX = e.clientX; lastY = e.clientY;
-    if(Math.abs(e.clientX-downX) > 4 || Math.abs(e.clientY-downY) > 4) moved = true;
+    if(Math.abs(e.clientX-downX) > 10 || Math.abs(e.clientY-downY) > 10) moved = true;
     /* Only a mostly-horizontal drag is ours; vertical stays with the page so it can
        still scroll (touch-action:pan-y already enforces this on touch). */
     if(e.cancelable && Math.abs(e.clientX-downX) > Math.abs(e.clientY-downY)) e.preventDefault();
@@ -1519,6 +1563,7 @@ document.documentElement.classList.add('js-anim');
     /* Full-screen view always gets the large file — never the 500px variant. */
     lbi.removeAttribute('srcset');
     lbi.src = p.src;
+    lbi.alt = p.label;
     lbm.textContent = p.label;
     lbt.textContent = p.tag;
     requestAnimationFrame(function(){ setTimeout(function(){ lb.classList.add('ready'); }, 20); });
