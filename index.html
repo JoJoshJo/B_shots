@@ -319,23 +319,59 @@ body.done .scroll-hint{opacity:1}
 .sphere-cap s{text-decoration:none;color:var(--brass);opacity:.75}
 
 /* ============ CLIENTS ============ */
-#clients{background:var(--ink-2)}
-.client{
-  display:grid;grid-template-columns:88px 1fr auto;gap:clamp(16px,4vw,50px);
-  align-items:center;padding:26px 0;border-bottom:1px solid var(--line);
-  transition:padding-left .5s var(--ease);
+/* Paper island between two ink sections. Gradient bands hide the seams; the section
+   marker and rule get local overrides so they read on the light background. */
+#clients{background:var(--paper);color:var(--ink);position:relative;overflow:hidden}
+#clients .sec-head{border-bottom-color:rgba(20,16,14,.14)}
+#clients .sec-head h2{color:var(--ink)}
+/* .num keeps var(--brass) globally, which reads on paper */
+#clients .clients-fade{position:absolute;left:0;right:0;height:22vh;z-index:3;pointer-events:none}
+#clients .clients-fade.top{top:0;background:linear-gradient(to bottom,var(--ink) 0%,rgba(241,238,232,0) 100%)}
+#clients .clients-fade.bot{bottom:0;background:linear-gradient(to top,var(--ink) 0%,rgba(241,238,232,0) 100%)}
+#clients .wrap{position:relative;z-index:2}
+
+.clients-grid{
+  position:relative;display:grid;grid-template-columns:repeat(3,1fr);
+  border:1px solid rgba(20,16,14,.14);
+  will-change:transform;
 }
-.client:first-of-type{border-top:1px solid var(--line)}
-.client.live{cursor:pointer}
-.client.live:hover{padding-left:18px}
-.client .yr{font-size:10px;letter-spacing:.24em;color:var(--brass)}
-.client h3{
-  font-family:var(--display);font-size:clamp(22px,3.4vw,44px);font-weight:400;
-  transition:color .4s ease;
+.client-cell{
+  position:relative;min-height:150px;padding:20px 18px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  background:var(--paper);
+  border-right:1px solid rgba(20,16,14,.14);
+  border-bottom:1px solid rgba(20,16,14,.14);
+  transition:background .3s ease;
 }
-.client.live:hover h3{color:var(--brass)}
-.client .tag{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);white-space:nowrap}
-.client.soon h3{color:var(--dim)}
+/* Alternating checkerboard tint. 3-col grid: cells 1,3,5 tinted on top row, cells
+   2,4,6 tinted on bottom row — resulting in a proper checkerboard. */
+.client-cell:nth-child(odd){background:rgba(20,16,14,.035)}
+/* Kill the redundant border on the right/bottom edge cells so the grid outline is
+   one clean 1px line, not doubled. */
+.clients-grid > .client-cell:nth-child(3n){border-right:none}
+.clients-grid > .client-cell:nth-last-child(-n+3){border-bottom:none}
+.client-cell .name{
+  font-family:var(--display);font-weight:400;font-size:clamp(19px,2vw,27px);
+  color:var(--ink);line-height:1.15;text-align:center;
+}
+.client-cell .label{
+  font-size:9px;letter-spacing:.24em;text-transform:uppercase;
+  color:rgba(20,16,14,.45);
+}
+/* Sixth cell is the CTA */
+a.client-cell{text-decoration:none;cursor:pointer}
+a.client-cell:hover{background:rgba(200,151,62,.10)}
+a.client-cell:hover .name{color:var(--brass)}
+
+/* Plus marks at the two interior grid crossings. 14px, positioned dead-centre on
+   each row/column intersection. Hidden on mobile where the grid reflows to 2 cols. */
+.clients-grid .plus{
+  position:absolute;width:14px;height:14px;top:50%;transform:translate(-50%,-50%);
+  color:rgba(20,16,14,.3);font-family:var(--sans);font-size:14px;line-height:14px;
+  font-weight:300;text-align:center;pointer-events:none;z-index:1;user-select:none;
+}
+.clients-grid .plus.a{left:33.3333%}
+.clients-grid .plus.b{left:66.6667%}
 
 /* ============ CONTACT ============ */
 #contact{text-align:left}
@@ -470,6 +506,24 @@ footer{
 #lb .next{right:16px}
 
 /* ============ RESPONSIVE ============ */
+/* Clients grid drops to 2 columns and the interior plus marks (positioned for the
+   3-col case) become meaningless — hidden. Under 640px the grid stays at 2 columns
+   since the cells are large enough to read side-by-side even at phone width. */
+@media(max-width:899px){
+  .clients-grid{grid-template-columns:repeat(2,1fr)}
+  .clients-grid .plus{display:none}
+  /* Reset the last-row border-clear that was tuned for 3 across, then re-clear for 2. */
+  .clients-grid > .client-cell{border-right:1px solid rgba(20,16,14,.14);border-bottom:1px solid rgba(20,16,14,.14)}
+  .clients-grid > .client-cell:nth-child(3n){border-right:1px solid rgba(20,16,14,.14)}
+  .clients-grid > .client-cell:nth-last-child(-n+3){border-bottom:1px solid rgba(20,16,14,.14)}
+  .clients-grid > .client-cell:nth-child(2n){border-right:none}
+  .clients-grid > .client-cell:nth-last-child(-n+2){border-bottom:none}
+  /* Recompute checkerboard for 2 cols: default odd-tint scheme still alternates,
+     but odd/even flips per row. Explicit rules to keep the pattern. */
+  .clients-grid > .client-cell{background:var(--paper)}
+  .clients-grid > .client-cell:nth-child(4n+1),
+  .clients-grid > .client-cell:nth-child(4n+4){background:rgba(20,16,14,.035)}
+}
 /* Contact card stacks its two panels; the form's border-left flips to a border-top
    at the seam so the divider stays visible in the vertical stack. */
 @media(max-width:899px){
@@ -490,8 +544,6 @@ footer{
   /* 44px minimum tap targets on form fields */
   .contact-form input,.contact-form select,.contact-form textarea{padding:13px 14px;font-size:16px}
   .contact-submit{padding:16px}
-  .client{grid-template-columns:64px 1fr;row-gap:6px}
-  .client .tag{grid-column:2}
   #lb .nav{width:38px;height:38px}
   #lb .prev{left:6px}#lb .next{right:6px}
 }
@@ -568,10 +620,21 @@ document.documentElement.classList.add('js-anim');
 </section>
 
 <section id="clients">
+  <div class="clients-fade top"></div>
   <div class="wrap">
     <div class="sec-head rv"><span class="num">02</span><h2>Clients &amp; Campaigns</h2></div>
-    <div id="clientlist"></div>
+    <div class="clients-grid rv" id="clientsGrid">
+      <div class="client-cell"><div class="name">Dolait</div><div class="label">Campagne</div></div>
+      <div class="client-cell"><div class="name">Le Jus de Tam Tam</div><div class="label">Campagne</div></div>
+      <div class="client-cell"><div class="name">Sistywax</div><div class="label">Campagne</div></div>
+      <div class="client-cell"><div class="name">Gari Kivo</div><div class="label">Campagne</div></div>
+      <div class="client-cell"><div class="name">Sco Chips</div><div class="label">Produit</div></div>
+      <a class="client-cell" href="#contact"><div class="name">Votre marque ici</div><div class="label">Disponible</div></a>
+      <span class="plus a" aria-hidden="true">+</span>
+      <span class="plus b" aria-hidden="true">+</span>
+    </div>
   </div>
+  <div class="clients-fade bot"></div>
 </section>
 
 
@@ -926,6 +989,18 @@ document.documentElement.classList.add('js-anim');
   var heroInner = document.querySelector('.hero-inner');
   var hero = document.getElementById('hero');
   var layers = [];
+  /* Clients grid parallax: lags the page by 12% as it scrolls through view.
+     Measured pageY is cached without any current transform in play, so the
+     translate never feeds back into its own measurement. */
+  var clientsGrid = document.getElementById('clientsGrid');
+  var clientsGridPageY = 0;
+  function measureClientsGrid(){
+    if(!clientsGrid) return;
+    var saved = clientsGrid.style.transform;
+    clientsGrid.style.transform = '';
+    clientsGridPageY = clientsGrid.getBoundingClientRect().top + window.scrollY;
+    clientsGrid.style.transform = saved;
+  }
 
   function mobileScatter(){ return window.matchMedia('(max-width:680px)').matches; }
 
@@ -959,23 +1034,33 @@ document.documentElement.classList.add('js-anim');
     });
   }
 
-  /* Parallax: transform only, rAF-throttled, and skipped entirely once the hero has
-     scrolled away so we stop writing styles nobody can see. */
+  /* Parallax: transform only, rAF-throttled. One handler for both the hero photos
+     (skipped once the hero is past) and the clients grid (only while near the
+     viewport). No second scroll listener. */
   var ticking = false, lastY = -1;
   function applyParallax(){
     ticking = false;
     var y = window.scrollY;
     if(y === lastY) return;
     lastY = y;
-    if(y > hero.offsetHeight + 200) return;
-    for(var i=0;i<layers.length;i++){
-      layers[i].el.style.transform = 'translate3d(0,' + (-y*layers[i].speed).toFixed(2) + 'px,0)';
+    if(y <= hero.offsetHeight + 200){
+      for(var i=0;i<layers.length;i++){
+        layers[i].el.style.transform = 'translate3d(0,' + (-y*layers[i].speed).toFixed(2) + 'px,0)';
+      }
+      if(heroInner) heroInner.style.transform = 'translate3d(0,' + (-y*WORDMARK_SPEED).toFixed(2) + 'px,0)';
     }
-    if(heroInner) heroInner.style.transform = 'translate3d(0,' + (-y*WORDMARK_SPEED).toFixed(2) + 'px,0)';
+    if(clientsGrid){
+      /* Only compute while the grid is roughly near the viewport, then lag by 12%. */
+      var cr = clientsGrid.getBoundingClientRect();
+      if(cr.bottom > -400 && cr.top < window.innerHeight + 400){
+        clientsGrid.style.transform = 'translate3d(0,' + ((y - clientsGridPageY) * 0.12).toFixed(2) + 'px,0)';
+      }
+    }
   }
   function onScroll(){ if(!ticking){ ticking = true; requestAnimationFrame(applyParallax); } }
 
   buildScatter();
+  measureClientsGrid();
   if(!RM){
     window.addEventListener('scroll', onScroll, {passive:true});
     applyParallax();
@@ -985,16 +1070,28 @@ document.documentElement.classList.add('js-anim');
   window.addEventListener('resize', function(){
     var now = mobileScatter();
     if(now !== wasSmall){ wasSmall = now; buildScatter(); lastY = -1; if(!RM) applyParallax(); }
+    /* Grid pageY changes when the viewport reflows content above it. */
+    measureClientsGrid();
   });
 
   /* ---------- header ---------- */
   var hd = document.getElementById('hd');
-  /* .on-paper while the header still sits over the light hero, so the bone brand,
-     nav and EN/FR flip to ink and the logo mark inverts. */
+  /* .on-paper while the header bar overlaps any paper section — currently the hero
+     and the clients grid. Uses getBoundingClientRect so it holds regardless of
+     content shifts above; a single OR keeps the class on across both sections. */
+  var paperSections = ['hero','clients'];
+  function overlapsHeader(el){
+    if(!el) return false;
+    var r = el.getBoundingClientRect();
+    return r.top < hd.offsetHeight && r.bottom > 0;
+  }
   function syncHeader(){
-    var heroEl = document.getElementById('hero');
     hd.classList.toggle('stuck', window.scrollY > 60);
-    if(heroEl) hd.classList.toggle('on-paper', window.scrollY < heroEl.offsetHeight - hd.offsetHeight);
+    var onPaper = false;
+    for(var i=0;i<paperSections.length;i++){
+      if(overlapsHeader(document.getElementById(paperSections[i]))){ onPaper = true; break; }
+    }
+    hd.classList.toggle('on-paper', onPaper);
   }
   window.addEventListener('scroll', syncHeader, {passive:true});
   window.addEventListener('resize', syncHeader);
@@ -1267,23 +1364,6 @@ document.documentElement.classList.add('js-anim');
   sphere.addEventListener('pointercancel', endDrag);
   sphere.addEventListener('lostpointercapture', endDrag);
   window.addEventListener('resize', function(){ layout(); measureClamp(); });
-
-  /* ---------- clients ---------- */
-  var CLIENTS = [
-    {n:'Dolait', t:'Campaign', y:'—', live:false},
-    {n:'Le Jus de Tam Tam', t:'Campaign', y:'—', live:false},
-    {n:'Sistywax', t:'Campaign', y:'—', live:false},
-    {n:'Gari Kivo', t:'Campaign', y:'—', live:false},
-    {n:'Sco Chips', t:'Product', y:'—', live:true}
-  ];
-  var cl = document.getElementById('clientlist');
-  CLIENTS.forEach(function(c){
-    var d = document.createElement('div');
-    d.className = 'client rv ' + (c.live ? 'live' : 'soon');
-    d.innerHTML = '<div class="yr">'+c.y+'</div><h3>'+c.n+'</h3>'+
-      '<div class="tag">'+(c.live ? c.t : 'Coming soon')+'</div>';
-    cl.appendChild(d);
-  });
 
 
   /* ---------- lightbox ---------- */
