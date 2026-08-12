@@ -321,19 +321,13 @@ body.done .scroll-hint{opacity:1}
 /* ============ CLIENTS ============ */
 /* Paper island between two ink sections. Gradient bands hide the seams; the section
    marker and rule get local overrides so they read on the light background. */
-/* Extra vertical padding so the heading and grid sit clear of the fade bands. */
-#clients{background:var(--paper);color:var(--ink);position:relative;overflow:hidden;
+/* overflow:hidden clips the grid's parallax translate at the section edges so it
+   can't bleed into the sections above or below. */
+#clients{background:var(--paper);color:var(--ink);overflow:hidden;
   padding:clamp(90px,12vw,160px) 0}
 #clients .sec-head{border-bottom-color:rgba(20,16,14,.14)}
 #clients .sec-head h2{color:var(--ink)}
 /* .num keeps var(--brass) globally, which reads on paper */
-/* Short, fast fades. Transparent stop uses ink at 0 alpha (not paper at 0 alpha) so
-   the ramp is a clean fade of the ink, not a colour interpolation between two hues
-   that produced a grey wash at 22vh. */
-#clients .clients-fade{position:absolute;left:0;right:0;height:7vh;z-index:3;pointer-events:none}
-#clients .clients-fade.top{top:0;background:linear-gradient(to bottom,var(--ink) 0%,rgba(20,16,14,0) 78%)}
-#clients .clients-fade.bot{bottom:0;background:linear-gradient(to top,var(--ink) 0%,rgba(20,16,14,0) 78%)}
-#clients .wrap{position:relative;z-index:2}
 
 .clients-grid{
   position:relative;display:grid;grid-template-columns:repeat(3,1fr);
@@ -625,7 +619,6 @@ document.documentElement.classList.add('js-anim');
 </section>
 
 <section id="clients">
-  <div class="clients-fade top"></div>
   <div class="wrap">
     <div class="sec-head rv"><span class="num">02</span><h2>Clients &amp; Campaigns</h2></div>
     <div class="clients-grid rv" id="clientsGrid">
@@ -639,7 +632,6 @@ document.documentElement.classList.add('js-anim');
       <span class="plus b" aria-hidden="true">+</span>
     </div>
   </div>
-  <div class="clients-fade bot"></div>
 </section>
 
 
