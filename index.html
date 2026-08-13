@@ -696,13 +696,13 @@ body.locked .mobnav{display:none}
   .hero-mail{font-size:10px;letter-spacing:.18em}
   .work-grid{gap:48px}
   /* Smaller orbs so the mobile sphere reads as separate points, not one clumped mass. */
-  .orb{width:54px;margin:-27px 0 0 -27px}
+  .orb{width:42px;margin:-21px 0 0 -21px}
   /* Mobile orbit at radius 124: 124 + 38*1.35 + 11 = 186 from centre, so ~373px of
      orbit. The old 470-560 box was sized for the former 150 radius and now left ~100px
      of dead space; 405 wraps the smaller orbit with a ~36px caption clearance. */
-  /* Smaller 54px orbs shrink the cloud to ~318px tall, so the box tightens to match
-     (was 400-430, which left ~48px of dead slack below the cloud). */
-  #sphere{height:clamp(345px,42vh,370px)}
+  /* 42px orbs on the wider 142 radius make the cloud ~349px tall, so the box grows back
+     to keep ~24px slack each side and >=40px clearance to the caption below. */
+  #sphere{height:clamp(390px,47vh,405px)}
   /* 44px minimum tap targets on form fields */
   .contact-form input,.contact-form select,.contact-form textarea{padding:13px 14px;font-size:16px}
   .contact-submit{padding:16px}
@@ -1414,7 +1414,7 @@ document.documentElement.classList.add('js-anim');
   /* Mobile radius 124: a full auto-rotation sweep (drift at its extremes, every rotY,
      rotX 0) keeps the widest projected orb edge at ~360px inside a 360px viewport, so
      nothing clips the right edge. 150 clipped; 126 just clears; 124 leaves ~2px. */
-  function radiusOf(){ return isMobile() ? 124 : 275; }
+  function radiusOf(){ return isMobile() ? 142 : 275; }
   /* Depth cues are tuned for the dense desktop sphere; the same ranges crush the
      sparser mobile one, leaving back orbs as faint dots. Compressed ranges on mobile
      keep them legible. Resolved once per frame, not per orb. */
