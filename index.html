@@ -1413,7 +1413,12 @@ document.documentElement.classList.add('js-anim');
      back-facing orbs go markedly smaller, dimmer and hazier. blur is the atmospheric
      cue, in px at the far pole. Mobile keeps its shallow ranges and no blur — the
      small sphere needs a legibility floor. */
-  var DEPTH_DESKTOP = {sBase:0.42, sRange:0.78, oBase:0.16, oRange:0.84, blur:2.4};
+  /* blur:0 on both. A filter:blur() on the orb wrapper renders it into a buffer that
+     ignores the wrapper's own clip AND the child img's mask, so any orb with bright
+     content at its edges painted as a hard square (worst during a drag's fast
+     compositing, where even clip-path was dropped). Depth now reads from scale and
+     opacity alone — a strong gradient on its own: scale 0.42→1.20, opacity 0.16→1.0. */
+  var DEPTH_DESKTOP = {sBase:0.42, sRange:0.78, oBase:0.16, oRange:0.84, blur:0};
   var DEPTH_MOBILE  = {sBase:0.82, sRange:0.36, oBase:0.55, oRange:0.45, blur:0};
   function depthOf(){ return isMobile() ? DEPTH_MOBILE : DEPTH_DESKTOP; }
   function lbOpen(){ var el = document.getElementById('lb'); return !!el && el.classList.contains('on'); }
