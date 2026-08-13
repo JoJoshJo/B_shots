@@ -285,6 +285,12 @@ body.done .scroll-hint{opacity:1}
 }
 .work-copy p.lead b{color:var(--brass);font-weight:400;font-style:italic}
 .stmt-body p{color:var(--dim);font-size:15px;line-height:1.85;margin-top:20px;max-width:32ch;text-wrap:pretty}
+/* On the stacked layout the ch caps make the copy a tall narrow ragged column. Below
+   1000px let it run the full column width so the quote reads in a few wide lines. */
+@media(max-width:999px){
+  .work-copy p.lead{max-width:none}
+  .stmt-body p{max-width:none}
+}
 
 /* ============ WORK ============ */
 /* ---- photo sphere ---- */
@@ -689,11 +695,14 @@ body.locked .mobnav{display:none}
      still read at phone size. */
   .hero-mail{font-size:10px;letter-spacing:.18em}
   .work-grid{gap:48px}
-  .orb{width:76px;margin:-38px 0 0 -38px}
+  /* Smaller orbs so the mobile sphere reads as separate points, not one clumped mass. */
+  .orb{width:54px;margin:-27px 0 0 -27px}
   /* Mobile orbit at radius 124: 124 + 38*1.35 + 11 = 186 from centre, so ~373px of
      orbit. The old 470-560 box was sized for the former 150 radius and now left ~100px
      of dead space; 405 wraps the smaller orbit with a ~36px caption clearance. */
-  #sphere{height:clamp(400px,48vh,430px)}
+  /* Smaller 54px orbs shrink the cloud to ~318px tall, so the box tightens to match
+     (was 400-430, which left ~48px of dead slack below the cloud). */
+  #sphere{height:clamp(345px,42vh,370px)}
   /* 44px minimum tap targets on form fields */
   .contact-form input,.contact-form select,.contact-form textarea{padding:13px 14px;font-size:16px}
   .contact-submit{padding:16px}
@@ -1209,17 +1218,17 @@ document.documentElement.classList.add('js-anim');
      parallax sweep that no two photos, nor any photo and the header/wordmark, come
      within the minimum gap. See STEP 3 verification. Speeds are unchanged. */
   var SCATTER = [
-    {id:'p23', l:-5.2, t:64.9, w:14.1, s:0.30, m:{l:36.4,  t:8.1,  w:26.9}},
-    {id:'p19', l:33.4, t:-5.8, w:13.8, s:0.52, m:{l:-11.5, t:9.0,  w:32.4}},
-    {id:'p24', l:53.1, t:77.1, w:14.6, s:0.18, m:{l:35.2,  t:80.3, w:30.5}},
-    {id:'p07', l:54.9, t:-8.7, w:13.4, s:0.45, m:null},
-    {id:'p10', l:13.7, t:79.9, w:13.8, s:0.24, m:{l:83.3,  t:-8.2, w:30.0}},
-    {id:'p13', l:-5.2, t:7.9,  w:13.8, s:0.58, m:null},
-    {id:'p21', l:73.5, t:78.9, w:15.2, s:0.16, m:{l:-11.5, t:81.7, w:28.6}},
+    {id:'p23', l:-5.2, t:64.9, w:14.1, s:0.30, m:{l:-15.4, t:53.1, w:22.1}},
+    {id:'p19', l:33.4, t:-5.8, w:13.8, s:0.52, m:{l:-17.4, t:13.4, w:22.2}},
+    {id:'p24', l:53.1, t:77.1, w:14.6, s:0.18, m:{l:89.6,  t:74.3, w:25.8}},
+    {id:'p07', l:54.9, t:-8.7, w:13.4, s:0.45, m:{l:29.0,  t:29.3, w:20.7}},
+    {id:'p10', l:13.7, t:79.9, w:13.8, s:0.24, m:{l:32.2,  t:78.6, w:25.7}},
+    {id:'p13', l:-5.2, t:7.9,  w:13.8, s:0.58, m:{l:40.8,  t:6.9,  w:24.7}},
+    {id:'p21', l:73.5, t:78.9, w:15.2, s:0.16, m:{l:-12.1, t:76.4, w:24.0}},
     {id:'p06', l:73.5, t:8.7,  w:15.0, s:0.40, m:null},
     {id:'p22', l:15.1, t:7.0,  w:13.9, s:0.55, m:null},
-    {id:'p15', l:33.6, t:79.5, w:14.5, s:0.22, m:{l:80.5,  t:82.6, w:32.8}},
-    {id:'p12', l:93.4, t:42.1, w:15.0, s:0.36, m:null}
+    {id:'p15', l:33.6, t:79.5, w:14.5, s:0.22, m:{l:90.9,  t:51.8, w:23.6}},
+    {id:'p12', l:93.4, t:42.1, w:15.0, s:0.36, m:{l:90.5,  t:18.0, w:23.2}}
   ];
   var WORDMARK_SPEED = 0.08;      /* slowest, so the wordmark lags behind the photos */
 
