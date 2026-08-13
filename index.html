@@ -246,6 +246,11 @@ body.done .scroll-hint{opacity:1}
      behind the copy (scrim + z-index handle legibility); the draw loop clamps
      front-half orbs so they never reach the type. */
   #sphere{margin-left:-22%;margin-right:-5%}
+  /* The sphere bleeds left of its column, so its centre no longer matches the column
+     centre. Give the caption the same margins so its flex-centre lands under the
+     sphere's centre, not the column's. Below 1280 the layout stacks and neither has
+     these margins, so the caption stays centred under the sphere as before. */
+  .sphere-cap{margin-left:-22%;margin-right:-5%}
 }
 /* The copy paints above every orb: #sphere's perspective makes it one stacking
    context, so a plain z-index:2 on the column sits over all of it. Ragged right
@@ -277,8 +282,9 @@ body.done .scroll-hint{opacity:1}
   position:relative;
   /* Must contain the orbit, or orbs spill over the marker above and the caption below.
      Orbit at radius 275: 275 + half an orb at hover scale (42*1.35) + drift 11 = 343
-     from centre, so ~686px of box, plus room for the caption to clear it. */
-  height:clamp(760px,72vh,840px);
+     from centre, so ~686px of box. 720 wraps that with ~34px slack (a ~37px clearance
+     to the caption) — the old 760 left ~74px of dead space around the orbit. */
+  height:clamp(720px,70vh,780px);
   perspective:1400px;
   cursor:grab;
   /* pan-y lets a vertical swipe scroll the page; horizontal drags spin the sphere */
@@ -307,9 +313,14 @@ body.done .scroll-hint{opacity:1}
      takes only 3% off the top, which keeps crowns and headpieces in frame. */
   object-position:center 12%;
   border-radius:50%;
-  /* Belt and braces: a mask survives layer promotion where a border-radius clip may not. */
-  -webkit-mask-image:radial-gradient(circle, #000 99%, transparent 100%);
-  mask-image:radial-gradient(circle, #000 99%, transparent 100%);
+  /* Belt and braces: a mask survives layer promotion where a border-radius clip may not.
+     `closest-side` is essential — without it the gradient defaults to farthest-corner,
+     so the mask circle reaches the box CORNERS and never inscribes the orb, leaving the
+     border-radius clip as the only thing making it round (which Chrome drops on the
+     promoted layer during a drag → square orb). closest-side sizes the mask to the
+     inscribed circle, so it clips to the visible circle on its own. */
+  -webkit-mask-image:radial-gradient(circle closest-side, #000 98%, transparent 100%);
+  mask-image:radial-gradient(circle closest-side, #000 98%, transparent 100%);
   transition:filter .3s ease;
 }
 .orb:focus-visible{outline:2px solid var(--brass);outline-offset:4px}
@@ -659,8 +670,10 @@ body.locked .mobnav{display:none}
   .hero-mail{font-size:10px;letter-spacing:.18em}
   .work-grid{gap:48px}
   .orb{width:76px;margin:-38px 0 0 -38px}
-  /* Mobile orbit: 150 + 38*1.35 + 11 = 212 from centre, so the box needs ~424px. */
-  #sphere{height:clamp(470px,56vh,560px)}
+  /* Mobile orbit at radius 124: 124 + 38*1.35 + 11 = 186 from centre, so ~373px of
+     orbit. The old 470-560 box was sized for the former 150 radius and now left ~100px
+     of dead space; 405 wraps the smaller orbit with a ~36px caption clearance. */
+  #sphere{height:clamp(400px,48vh,430px)}
   /* 44px minimum tap targets on form fields */
   .contact-form input,.contact-form select,.contact-form textarea{padding:13px 14px;font-size:16px}
   .contact-submit{padding:16px}
