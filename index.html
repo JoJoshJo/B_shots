@@ -68,6 +68,11 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .sec-head .num{font-size:10px;letter-spacing:.3em;color:var(--brass);font-weight:500}
 .wrap{max-width:1360px;margin:0 auto;padding-left:var(--pad);padding-right:var(--pad)}
 section{padding:clamp(72px,10vw,140px) 0}
+/* #work's bottom padding is trimmed on its own so the caption sits ~160px above the
+   skills "02" marker instead of the full ~300px the shared section padding gave — the
+   sphere already makes the section feel spacious. Desktop trims further (see the
+   min-width:1280 block) because skills' own top padding is larger there. */
+#work{padding-bottom:40px}
 
 /* ============ OVERTURE ============ */
 #overture{
@@ -251,6 +256,11 @@ body.done .scroll-hint{opacity:1}
      sphere's centre, not the column's. Below 1280 the layout stacks and neither has
      these margins, so the caption stays centred under the sphere as before. */
   .sphere-cap{margin-left:-22%;margin-right:-5%}
+  /* The work→skills gap is section padding (work bottom + skills top ≈ 300px on desktop),
+     which dwarfs every other boundary. Trim work's bottom padding here so the caption
+     sits ~180px above the "02" marker — in rhythm with the rest. Mobile keeps the full
+     padding (its gap is already ~160px). */
+  #work{padding-bottom:20px}
 }
 /* The copy paints above every orb: #sphere's perspective makes it one stacking
    context, so a plain z-index:2 on the column sits over all of it. Ragged right
@@ -283,8 +293,9 @@ body.done .scroll-hint{opacity:1}
   /* Must contain the orbit, or orbs spill over the marker above and the caption below.
      Orbit at radius 275: 275 + half an orb at hover scale (42*1.35) + drift 11 = 343
      from centre, so ~686px of box. 720 wraps that with ~34px slack (a ~37px clearance
-     to the caption) — the old 760 left ~74px of dead space around the orbit. */
-  height:clamp(720px,70vh,780px);
+     to the caption). The measured orb cloud is ~621px tall, so 670 hugs it with ~25px
+     slack each side instead of the ~100px of empty box the taller value left. */
+  height:clamp(670px,66vh,720px);
   perspective:1400px;
   cursor:grab;
   /* pan-y lets a vertical swipe scroll the page; horizontal drags spin the sphere */
@@ -306,6 +317,15 @@ body.done .scroll-hint{opacity:1}
   border-radius:50%;overflow:hidden;
   box-shadow:0 10px 24px rgba(0,0,0,.45);
   isolation:isolate;
+  /* The real fix for orbs rendering as squares mid-scene: draw() puts a `filter:blur()`
+     depth cue on this wrapper, and a filter renders the element into a buffer that
+     ignores the border-radius/overflow clip AND the child img's mask — so the orb
+     paints as its square bounding box (obvious only where the photo has bright content
+     at the edges, e.g. the bar shot). clip-path is applied AFTER the filter in the
+     pipeline, so it clips the filtered output back to a circle and survives. It does
+     clip the box-shadow above, but that shadow is imperceptible on the ink ground. */
+  clip-path:circle(50%);
+  -webkit-clip-path:circle(50%);
 }
 .orb img{
   display:block;width:100%;aspect-ratio:1/1;object-fit:cover;
