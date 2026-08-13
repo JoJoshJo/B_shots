@@ -166,17 +166,26 @@ header.on-paper.stuck{
   padding:0 var(--pad);
   background:var(--paper);
 }
-/* Scattered photographs. Positions come from JS so one table drives both
-   breakpoints; only the parallax transform is written per frame. */
-.scatter{position:absolute;inset:0;z-index:1;pointer-events:none}
-.sc{position:absolute;display:block;will-change:transform}
-.sc img{
-  display:block;width:100%;height:auto;object-fit:cover;
-  border-radius:0;box-shadow:none;
+/* Photo ring encircling the wordmark. Positions come from one formula (see buildRing),
+   so photos are evenly spaced by construction and can never collide. The ring container
+   spins as a whole; each photo carries its own tangent tilt set inline as --tf. */
+.ring{position:absolute;left:50%;top:50%;width:0;height:0;z-index:1;will-change:transform}
+.ring-photo{
+  position:absolute;left:0;top:0;cursor:pointer;
+  border-radius:6px;overflow:hidden;
+  box-shadow:0 10px 24px rgba(20,16,14,.18);
+  transform:var(--tf);
+  transition:transform .3s var(--ease),box-shadow .3s ease;
+}
+.ring-photo img{display:block;width:100%;height:100%;object-fit:cover;border-radius:6px}
+/* Hover: grow in place and lift the shadow — desktop pointers only, never a flip. The
+   scale is appended to the inline --tf so the ring position and tilt are preserved. */
+@media(hover:hover){
+  .ring-photo:hover{transform:var(--tf) scale(1.12);box-shadow:0 18px 40px rgba(20,16,14,.28);z-index:5}
 }
 .hero-inner{
   position:relative;z-index:10;display:flex;flex-direction:column;
-  align-items:center;max-width:900px;will-change:transform;
+  align-items:center;max-width:900px;
 }
 #hero h1{
   font-family:var(--display);font-weight:400;color:var(--ink);
@@ -691,8 +700,6 @@ body.locked .mobnav{display:none}
      nav hides and the fixed bottom bar (.mobnav) takes over — the page is ~8 screens
      tall, so a persistent, thumb-reachable nav matters. */
   .hnav{display:none}
-  /* Six frames instead of eleven (JS drops the rest) and they run wider, so they
-     still read at phone size. */
   .hero-mail{font-size:10px;letter-spacing:.18em}
   .work-grid{gap:48px}
   /* Smaller orbs so the mobile sphere reads as separate points, not one clumped mass. */
@@ -722,9 +729,9 @@ body.locked .mobnav{display:none}
   /* The rule above zeroes duration but not delay; without this the no-JS fallback
      would still sit on a black screen for ~4.6s before snapping open. */
   #overture .leaf,#overture .mark{animation-delay:0s!important}
-  /* No parallax: JS skips the scroll listener, and this clears any transform so the
-     scattered layout renders static and complete. */
-  .sc,.hero-inner{transform:none!important}
+  /* No motion: JS skips the ring spin and the scroll listener, and the ring stays put.
+     The photos keep their formula positions (that is layout, not motion) so all are visible. */
+  #ring{transform:none!important}
   #hero h1,.hero-mail{opacity:1!important;transform:none!important}
 }
 </style>
@@ -760,7 +767,7 @@ document.documentElement.classList.add('js-anim');
 <main id="top">
 
 <section id="hero">
-  <div class="scatter" id="scatter"></div>
+  <div class="ring" id="ring"></div>
   <div class="hero-inner">
     <h1>Original Brave</h1>
     <a class="hero-mail" href="mailto:originalbraveshots@gmail.com">originalbraveshots@gmail.com</a>
@@ -1201,41 +1208,15 @@ document.documentElement.classList.add('js-anim');
   if(RM){ document.body.classList.add('opened','done'); }
   else { window.addEventListener('load', function(){ setTimeout(open, 620); }); }
 
-  /* ---------- hero scatter ---------- */
-  var byId = {}; PHOTOS.forEach(function(p){ byId[p.id]=p; });
-
+  /* ---------- hero photo ring ---------- */
   /* Responsive variants are derived from the existing src, so the PHOTOS array is
      untouched. The large descriptor uses p.w — the files are 720-973px wide, not a
      uniform 1000px, and a wrong w descriptor makes the browser pick the wrong file. */
   function smallOf(src){ return src.replace(/\.webp$/, '-sm.webp'); }
   function srcsetOf(p){ return smallOf(p.src) + ' 500w, ' + p.src + ' ' + p.w + 'w'; }
 
-  /* left/top/width are percentages of the hero box; speed is the parallax rate.
-     Speeds alternate fast/slow down the list so neighbours separate as you scroll. */
-  /* Positions solved by measurement, not by eye: an offline solver placed the photos
-     in X-disjoint columns (fast-parallax photo on top of each column so a pair
-     separates rather than converges as it scrolls) and verified across the full
-     parallax sweep that no two photos, nor any photo and the header/wordmark, come
-     within the minimum gap. See STEP 3 verification. Speeds are unchanged. */
-  var SCATTER = [
-    {id:'p23', l:-5.2, t:64.9, w:14.1, s:0.30, m:{l:-15.4, t:53.1, w:22.1}},
-    {id:'p19', l:33.4, t:-5.8, w:13.8, s:0.52, m:{l:-17.4, t:13.4, w:22.2}},
-    {id:'p24', l:53.1, t:77.1, w:14.6, s:0.18, m:{l:89.6,  t:74.3, w:25.8}},
-    {id:'p07', l:54.9, t:-8.7, w:13.4, s:0.45, m:{l:29.0,  t:29.3, w:20.7}},
-    {id:'p10', l:13.7, t:79.9, w:13.8, s:0.24, m:{l:32.2,  t:78.6, w:25.7}},
-    {id:'p13', l:-5.2, t:7.9,  w:13.8, s:0.58, m:{l:40.8,  t:6.9,  w:24.7}},
-    {id:'p21', l:73.5, t:78.9, w:15.2, s:0.16, m:{l:-12.1, t:76.4, w:24.0}},
-    {id:'p06', l:73.5, t:8.7,  w:15.0, s:0.40, m:null},
-    {id:'p22', l:15.1, t:7.0,  w:13.9, s:0.55, m:null},
-    {id:'p15', l:33.6, t:79.5, w:14.5, s:0.22, m:{l:90.9,  t:51.8, w:23.6}},
-    {id:'p12', l:93.4, t:42.1, w:15.0, s:0.36, m:{l:90.5,  t:18.0, w:23.2}}
-  ];
-  var WORDMARK_SPEED = 0.08;      /* slowest, so the wordmark lags behind the photos */
+  var ring = document.getElementById('ring');
 
-  var scatter = document.getElementById('scatter');
-  var heroInner = document.querySelector('.hero-inner');
-  var hero = document.getElementById('hero');
-  var layers = [];
   /* Clients grid parallax: lags the page by 12% as it scrolls through view.
      Measured pageY is cached without any current transform in play, so the
      translate never feeds back into its own measurement. */
@@ -1249,81 +1230,100 @@ document.documentElement.classList.add('js-anim');
     clientsGrid.style.transform = saved;
   }
 
-  function mobileScatter(){ return window.matchMedia('(max-width:680px)').matches; }
+  /* The ring shows the same archive/print-excluded set the lightbox pages through, in a
+     fixed order (no randomisation), so photo i maps straight to openLB(i). Declared here
+     (the sphere and lightbox share it) and never re-initialised, so the async ring re-fit
+     after fonts load still sees a full list. */
+  var visible = PHOTOS.filter(function(p){ return p.cat !== 'archive' && p.cat !== 'print'; });
 
-  function buildScatter(){
-    if(!scatter) return;
-    scatter.innerHTML = '';
-    layers = [];
-    var small = mobileScatter();
-    var shown = 0;
-    SCATTER.forEach(function(cfg){
-      /* On phones only the six entries carrying an `m` override are shown — eleven
-         frames at this size is noise, not composition. */
-      if(small && !cfg.m) return;
-      var p = byId[cfg.id];
-      if(!p) return;
-      var pos = small ? cfg.m : cfg;
-      var d = document.createElement('div');
-      d.className = 'sc';
-      d.style.left = pos.l + '%';
-      d.style.top  = pos.t + '%';
-      d.style.width = pos.w + '%';
-      var im = new Image();
-      /* Natural proportions: the real w/h ride along, so nothing is forced to a ratio. */
-      im.width = p.w; im.height = p.h;
-      im.sizes = '20vw';
-      /* The hero paints these, so the first three in DOM order load eagerly at high
-         priority; the rest defer so they don't compete for the initial paint budget. */
-      if(shown < 3){ im.fetchPriority = 'high'; }
-      else { im.loading = 'lazy'; im.decoding = 'async'; }
-      im.srcset = srcsetOf(p);
-      im.src = p.src;
-      im.alt = '';
-      d.appendChild(im);
-      scatter.appendChild(d);
-      layers.push({el:d, speed:cfg.s});
-      shown++;
-    });
+  function ringConfig(){
+    var w = window.innerWidth, vh = window.innerHeight;
+    if(w >= 1000) return {N:16, pw:68, ph:96, r:Math.min(0.38*vh, 340)};
+    if(w >= 680)  return {N:12, pw:58, ph:82, r:Math.min(0.34*vh, 260)};
+    return                {N:10, pw:46, ph:64, r:Math.min(0.30*vh, 150)};
   }
 
-  /* Parallax: transform only, rAF-throttled. One handler for both the hero photos
-     (skipped once the hero is past) and the clients grid (only while near the
-     viewport). No second scroll listener. */
-  var ticking = false, lastY = -1;
+  /* Even spacing by construction: angle_i = i/N * 2PI - PI/2 (start at top). Each photo
+     is centred on the ring origin, pushed out to (x,y), and tilted tangent (angle+90).
+     No collision possible, so no solver, no per-photo parallax. */
+  function buildRing(){
+    if(!ring) return;
+    ring.innerHTML = '';
+    var cfg = ringConfig();
+    /* "Original Brave" is wide, so the spec radii do not always clear it. A side photo is
+       tilted so it reaches ph/2 toward the centre; on top of that the ring is centred on
+       the h1+email block (not the h1 alone) and no photo sits at an exact 3-o'clock, which
+       together cost ~another 26px (the email, centred just below, is the tighter edge).
+       So radius = max(spec, wordmarkHalf + ph/2 + 50) keeps every photo comfortably
+       (>=24px) off both the wordmark and the email. Only the width is needed — measured
+       once fonts load (see the re-fit after buildRing) — so there is no fragile
+       position/transition measurement. */
+    var h1 = document.querySelector('#hero h1');
+    var wmHalf = (h1 ? h1.getBoundingClientRect().width : 0) / 2;
+    var R = Math.max(cfg.r, wmHalf + cfg.ph/2 + 50);
+    for(var i=0;i<cfg.N;i++){
+      var idx = i % visible.length;
+      var p = visible[idx];
+      var ang = (i/cfg.N)*2*Math.PI - Math.PI/2;
+      var x = Math.cos(ang)*R, y = Math.sin(ang)*R, deg = ang*180/Math.PI + 90;
+      var d = document.createElement('div');
+      d.className = 'ring-photo';
+      d.style.width = cfg.pw + 'px';
+      d.style.height = cfg.ph + 'px';
+      /* Set the position before the element paints, so it appears in place (no fly-in);
+         the transition then only ever animates hover. */
+      d.style.setProperty('--tf','translate(-50%,-50%) translate('+x.toFixed(1)+'px,'+y.toFixed(1)+'px) rotate('+deg.toFixed(1)+'deg)');
+      d.setAttribute('role','button');
+      d.setAttribute('aria-label', p.label + ' — ' + p.tag);
+      (function(j){ d.addEventListener('click', function(){ openLB(j); }); })(idx);
+      var im = new Image();
+      im.width = cfg.pw; im.height = cfg.ph;
+      im.sizes = '68px';
+      /* First four load eagerly at high priority; the rest defer off first paint. */
+      if(i < 4){ im.fetchPriority = 'high'; } else { im.loading = 'lazy'; im.decoding = 'async'; }
+      im.srcset = srcsetOf(p);
+      im.src = p.src;
+      im.alt = p.label;
+      d.appendChild(im);
+      ring.appendChild(d);
+    }
+  }
+
+  /* Ring rotation: one rAF loop, one transform on the container, ~0.02deg/frame. */
+  var ringRot = 0;
+  function spinRing(){ ringRot += 0.02; if(ring) ring.style.transform = 'rotate(' + ringRot.toFixed(3) + 'deg)'; requestAnimationFrame(spinRing); }
+
+  /* Clients-grid parallax only — the hero no longer parallaxes. rAF-throttled, passive. */
+  var ticking = false;
   function applyParallax(){
     ticking = false;
+    if(!clientsGrid) return;
     var y = window.scrollY;
-    if(y === lastY) return;
-    lastY = y;
-    if(y <= hero.offsetHeight + 200){
-      for(var i=0;i<layers.length;i++){
-        layers[i].el.style.transform = 'translate3d(0,' + (-y*layers[i].speed).toFixed(2) + 'px,0)';
-      }
-      if(heroInner) heroInner.style.transform = 'translate3d(0,' + (-y*WORDMARK_SPEED).toFixed(2) + 'px,0)';
-    }
-    if(clientsGrid){
-      /* Only compute while the grid is roughly near the viewport, then lag by 12%. */
-      var cr = clientsGrid.getBoundingClientRect();
-      if(cr.bottom > -400 && cr.top < window.innerHeight + 400){
-        clientsGrid.style.transform = 'translate3d(0,' + ((y - clientsGridPageY) * 0.12).toFixed(2) + 'px,0)';
-      }
+    var cr = clientsGrid.getBoundingClientRect();
+    if(cr.bottom > -400 && cr.top < window.innerHeight + 400){
+      clientsGrid.style.transform = 'translate3d(0,' + ((y - clientsGridPageY) * 0.12).toFixed(2) + 'px,0)';
     }
   }
   function onScroll(){ if(!ticking){ ticking = true; requestAnimationFrame(applyParallax); } }
 
-  buildScatter();
+  buildRing();
+  /* Re-fit once the display font has loaded: the wordmark's real width (and so the
+     clearance the ring must respect) is only known then. Without this the fit runs
+     against the fallback metrics and can land too tight. */
+  if(document.fonts && document.fonts.ready){ document.fonts.ready.then(function(){ buildRing(); }); }
+  else { window.addEventListener('load', function(){ setTimeout(buildRing, 300); }); }
   measureClientsGrid();
   if(!RM){
     window.addEventListener('scroll', onScroll, {passive:true});
     applyParallax();
+    requestAnimationFrame(spinRing);   /* reduced motion: ring stays static */
   }
-  /* Rebuild across the breakpoint so the phone set and the desktop set swap cleanly. */
-  var wasSmall = mobileScatter();
+  /* Rebuild the ring when the count/size/radius breakpoint changes. */
+  function ringBP(){ return window.innerWidth >= 1000 ? 3 : (window.innerWidth >= 680 ? 2 : 1); }
+  var lastBP = ringBP();
   window.addEventListener('resize', function(){
-    var now = mobileScatter();
-    if(now !== wasSmall){ wasSmall = now; buildScatter(); lastY = -1; if(!RM) applyParallax(); }
-    /* Grid pageY changes when the viewport reflows content above it. */
+    var now = ringBP();
+    if(now !== lastBP){ lastBP = now; buildRing(); }
     measureClientsGrid();
   });
 
@@ -1401,7 +1401,7 @@ document.documentElement.classList.add('js-anim');
   var sphere = document.getElementById('sphere');
   var sphereInner = document.getElementById('sphere-inner');
   var sphereCap = document.getElementById('spherecap');
-  var visible = [], orbs = [];
+  var orbs = [];
 
   var rotY = 0, rotX = 0;      /* current sphere rotation, degrees */
   var velY = 0, velX = 0;      /* momentum, degrees per frame */
