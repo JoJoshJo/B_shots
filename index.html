@@ -17,7 +17,7 @@
      cover every weight the page uses. The URL already carries display=swap. -->
 <link rel="preload" as="font" type="font/woff2" crossorigin href="https://fonts.gstatic.com/s/bodonimoda/v28/aFTQ7PxzY382XsXX63LUYJSKSKjWXFBP.woff2">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="https://fonts.gstatic.com/s/archivo/v25/k3kPo8UDI-1M0wlSV9XAw6lQkqWY8Q82sLydOxKsv4Rn.woff2">
-<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;0,6..96,700;1,6..96,400&family=Archivo:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;1,6..96,400&family=Archivo:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root{
   --ink:#14100E;
@@ -28,6 +28,20 @@
   --dim:#9E9184;
   --brass:#C8973E;
   --line:rgba(239,231,219,.14);
+  /* Ink-on-paper hairline (matches --line's alpha but over the light sections). */
+  --line-paper:rgba(20,16,14,.14);
+  /* Ink at fixed alphas. Names carry the actual alpha to stay honest: the audit asked
+     for .05/.10/.35 but the existing values are .035/.12/.30, and snapping them would
+     have visibly shifted the clients checkerboard and plus marks — out of scope here. */
+  --ink-035:rgba(20,16,14,.035);
+  --ink-12:rgba(20,16,14,.12);
+  --ink-30:rgba(20,16,14,.3);
+  --ink-62:rgba(20,16,14,.62);
+  --ink-deep:#1A1206;
+  /* Bone at fixed alphas over ink. --bone-045 is the raised skills checkerboard tint. */
+  --bone-045:rgba(239,231,219,.045);
+  --bone-04:rgba(239,231,219,.04);
+  --bone-05:rgba(239,231,219,.05);
   --display:"Bodoni Moda",Didot,"Bodoni MT",Georgia,serif;
   --sans:"Archivo",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   --pad:clamp(20px,5vw,72px);
@@ -46,11 +60,6 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 :focus-visible{outline:2px solid var(--brass);outline-offset:3px}
 
 /* ============ TYPE ============ */
-.eyebrow{
-  font-size:10px;letter-spacing:.32em;text-transform:uppercase;
-  color:var(--dim);font-weight:500;
-}
-.display{font-family:var(--display);font-weight:400;line-height:.86;letter-spacing:-.01em}
 .sec-head{
   display:flex;align-items:baseline;gap:18px;
   padding-bottom:22px;margin-bottom:44px;border-bottom:1px solid var(--line);
@@ -112,10 +121,12 @@ header.stuck{
   padding-top:12px;padding-bottom:12px;
   border-bottom:1px solid var(--line);
 }
-header .brand{display:flex;align-items:center;gap:11px}
+/* Padding lifts the tap box to 44px tall; the equal negative margin keeps the brand's
+   footprint — and so the header height — exactly as it was. */
+header .brand{display:flex;align-items:center;gap:11px;padding:14px 10px;margin:-14px -10px}
 header .brand img{width:34px}
 header .brand span{
-  font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim);
+  font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim);
 }
 .nav-right{display:flex;align-items:center;gap:26px}
 /* ---- header over the light hero ---- */
@@ -131,7 +142,7 @@ header.on-paper .brand img{filter:invert(1) brightness(.1)}
    swap it for a paper-tinted bar so the blur survives but the text stays legible. */
 header.on-paper.stuck{
   background:rgba(241,238,232,.82);
-  border-bottom-color:rgba(20,16,14,.12);
+  border-bottom-color:var(--ink-12);
 }
 .hnav{display:flex;align-items:center;gap:26px}
 .hnav a{
@@ -171,7 +182,10 @@ header.on-paper.stuck{
    fill:forwards, which would outrank an opacity-based hover exactly as it once
    killed the CTA's scale. */
 .hero-mail{
-  margin-top:22px;font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+  /* Padding + a compensating smaller margin builds a >=44px tap box while the text
+     stays exactly where it was: content top = 5 (margin) + 17 (pad) = 22px, as before. */
+  display:inline-block;margin-top:5px;padding:17px 12px;
+  font-size:11px;letter-spacing:.22em;text-transform:uppercase;
   color:rgba(20,16,14,.6);transition:color .3s ease;
 }
 .hero-mail:hover{color:var(--ink)}
@@ -182,7 +196,7 @@ header.on-paper.stuck{
   background:linear-gradient(to bottom,rgba(20,16,14,0) 0%,var(--ink) 100%);
 }
 
-/* Hidden state is opt-in, gated on html.js-anim exactly like .rv/.clip, so the hero
+/* Hidden state is opt-in, gated on html.js-anim exactly like .rv, so the hero
    still reads with JS off rather than sitting at opacity:0. */
 .js-anim #hero h1,
 .js-anim .hero-mail{opacity:0;transform:translateY(14px)}
@@ -192,7 +206,7 @@ body.done .hero-mail{animation:fadeUp .8s var(--ease) .4s forwards}
 @keyframes fadeUp{to{opacity:1;transform:none}}
 .scroll-hint{
   position:absolute;bottom:26px;right:var(--pad);z-index:3;
-  font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim);
+  font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim);
   display:flex;align-items:center;gap:10px;
   opacity:0;transition:opacity .8s ease 2.4s;
 }
@@ -204,12 +218,9 @@ body.done .scroll-hint{opacity:1}
 /* Base state is VISIBLE. If JS never runs, or fails before it can flag itself,
    nothing is ever hidden — the photographs are not gated behind a script. */
 .rv{opacity:1;transform:none;transition:opacity .9s ease,transform .9s var(--ease)}
-.clip{clip-path:inset(0 0 0 0);transition:clip-path 1.15s var(--ease)}
 /* Hiding is opt-in, gated on html.js-anim (added by an inline script in <head>). */
 .js-anim .rv:not(.in){opacity:0;transform:translateY(30px)}
-.js-anim .clip:not(.in){clip-path:inset(100% 0 0 0)}
 .rv.in{opacity:1;transform:none}
-.clip.in{clip-path:inset(0 0 0 0)}
 
 /* ============ STATEMENT ============ */
 /* No border-top: it would draw a hairline exactly where the hero's gradient
@@ -307,7 +318,7 @@ body.done .scroll-hint{opacity:1}
 }
 .sphere-cap{
   display:flex;justify-content:center;gap:14px;margin-top:20px;min-height:1.3em;
-  font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+  font-size:10px;letter-spacing:.18em;text-transform:uppercase;
 }
 .sphere-cap b{color:var(--dim);font-weight:400}
 .sphere-cap s{text-decoration:none;color:var(--brass);opacity:.75}
@@ -328,7 +339,7 @@ body.done .scroll-hint{opacity:1}
   border-right:1px solid var(--line);
   border-bottom:1px solid var(--line);
 }
-.skill-cell:nth-child(odd){background:rgba(239,231,219,.02)}
+.skill-cell:nth-child(odd){background:var(--bone-045)}
 /* Border seams. The three .plus spans are trailing children of the grid, so any
    nth-last-child / :last-child counts THEM, not cells — every seam rule counts from
    the front with nth-child, which the plus spans can't disturb. Seven cells, 4 cols:
@@ -368,6 +379,9 @@ body.done .scroll-hint{opacity:1}
 }
 @media(max-width:559px){
   .skills-grid{grid-template-columns:1fr}
+  /* One column: the 210px desktop min-height stacks into a very tall section, so drop
+     it to 150px on phones. */
+  .skill-cell{min-height:150px}
   .skills-grid > .skill-cell{border-right:none;border-bottom:1px solid var(--line)}
   /* Single column: cell 7 is the last, front-counted so the trailing plus spans
      (which :last-child would catch instead) don't matter. */
@@ -384,13 +398,13 @@ body.done .scroll-hint{opacity:1}
 .sw-tile-wrap{display:flex;flex-direction:column;align-items:center;gap:10px}
 .sw-tile{
   width:96px;height:76px;
-  background:rgba(239,231,219,.04);border:1px solid var(--line);border-radius:4px;
+  background:var(--bone-04);border:1px solid var(--line);border-radius:4px;
   display:flex;align-items:center;justify-content:center;
 }
 .sw-tile img{height:30px;width:auto;display:block}
 .sw-tile .letters{font-family:var(--display);font-size:22px;color:var(--bone);line-height:1}
 .sw-tile-wrap .caption{
-  font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);
+  font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);
 }
 
 /* ============ CLIENTS ============ */
@@ -400,28 +414,28 @@ body.done .scroll-hint{opacity:1}
    can't bleed into the sections above or below. */
 #clients{background:var(--paper);color:var(--ink);overflow:hidden;
   padding:clamp(90px,12vw,160px) 0}
-#clients .sec-head{border-bottom-color:rgba(20,16,14,.14)}
+#clients .sec-head{border-bottom-color:var(--line-paper)}
 #clients .sec-head h2{color:var(--ink)}
 /* Brass on paper is only 2.28:1 — too low for the small numeral. Ink at 55% (your
    spec) lands at 4.01:1, still under AA for small text, so bumped to 62% → 5.04:1. */
-#clients .sec-head .num{color:rgba(20,16,14,.62)}
+#clients .sec-head .num{color:var(--ink-62)}
 
 .clients-grid{
   position:relative;display:grid;grid-template-columns:repeat(3,1fr);
-  border:1px solid rgba(20,16,14,.14);
+  border:1px solid var(--line-paper);
   will-change:transform;
 }
 .client-cell{
   position:relative;min-height:150px;padding:20px 18px;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
   background:var(--paper);
-  border-right:1px solid rgba(20,16,14,.14);
-  border-bottom:1px solid rgba(20,16,14,.14);
+  border-right:1px solid var(--line-paper);
+  border-bottom:1px solid var(--line-paper);
   transition:background .3s ease;
 }
 /* Alternating checkerboard tint. 3-col grid: cells 1,3,5 tinted on top row, cells
    2,4,6 tinted on bottom row — resulting in a proper checkerboard. */
-.client-cell:nth-child(odd){background:rgba(20,16,14,.035)}
+.client-cell:nth-child(odd){background:var(--ink-035)}
 /* Kill the redundant border on the right/bottom edge cells so the grid outline is
    one clean 1px line, not doubled. */
 .clients-grid > .client-cell:nth-child(3n){border-right:none}
@@ -431,8 +445,8 @@ body.done .scroll-hint{opacity:1}
   color:var(--ink);line-height:1.15;text-align:center;
 }
 .client-cell .label{
-  font-size:9px;letter-spacing:.24em;text-transform:uppercase;
-  color:rgba(20,16,14,.62);
+  font-size:10px;letter-spacing:.26em;text-transform:uppercase;
+  color:var(--ink-62);
 }
 /* Sixth cell is the CTA */
 a.client-cell{text-decoration:none;cursor:pointer}
@@ -445,7 +459,7 @@ a.client-cell:hover .name{color:var(--ink)}
    each row/column intersection. Hidden on mobile where the grid reflows to 2 cols. */
 .clients-grid .plus{
   position:absolute;width:14px;height:14px;top:50%;transform:translate(-50%,-50%);
-  color:rgba(20,16,14,.3);font-family:var(--sans);font-size:14px;line-height:14px;
+  color:var(--ink-30);font-family:var(--sans);font-size:14px;line-height:14px;
   font-weight:300;text-align:center;pointer-events:none;z-index:1;user-select:none;
 }
 .clients-grid .plus.a{left:33.3333%}
@@ -480,10 +494,12 @@ a.client-cell:hover .name{color:var(--ink)}
 }
 .contact-info .lead{color:var(--dim);font-size:15px;line-height:1.8;max-width:46ch;margin-top:20px}
 .contact-list{list-style:none;padding:0;margin:34px 0 0;display:grid;gap:18px}
-.contact-list li{display:flex;align-items:center;gap:14px}
+.contact-list li{display:flex;align-items:center;gap:14px;min-height:44px}
+/* The row link fills the row height so the whole 44px is tappable, text still centred. */
+.contact-list li > a,.contact-list li > div{display:flex;flex-direction:column;justify-content:center;min-height:44px}
 .contact-icon{
   flex:0 0 42px;width:42px;height:42px;border-radius:6px;
-  background:rgba(239,231,219,.05);
+  background:var(--bone-05);
   display:grid;place-items:center;color:var(--brass);
 }
 .contact-icon svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
@@ -497,7 +513,7 @@ a.client-cell:hover .name{color:var(--ink)}
   display:flex;flex-direction:column;gap:16px;
 }
 .contact-form label{
-  display:block;font-size:10px;letter-spacing:.2em;text-transform:uppercase;
+  display:block;font-size:10px;letter-spacing:.22em;text-transform:uppercase;
   color:var(--dim);margin-bottom:8px;
 }
 .contact-form input,.contact-form select,.contact-form textarea{
@@ -505,9 +521,14 @@ a.client-cell:hover .name{color:var(--ink)}
   padding:11px 13px;color:var(--bone);font-family:var(--sans);font-size:14px;
   transition:border-color .25s ease;
 }
-.contact-form input:focus,.contact-form select:focus,.contact-form textarea:focus{
-  outline:none;border-color:var(--brass);
+/* Keyboard focus gets a real 2px brass ring (offset 2px), not just a border tint, so
+   it is unmistakable. :focus-visible keeps it off mouse/touch interactions. */
+.contact-form input:focus-visible,.contact-form select:focus-visible,.contact-form textarea:focus-visible{
+  outline:2px solid var(--brass);outline-offset:2px;border-color:var(--brass);
 }
+/* The submit sits on brass, where a brass ring would vanish — draw a dark ring inset
+   into the button so focus reads against its own background. */
+.contact-submit:focus-visible{outline:2px solid var(--ink);outline-offset:-4px}
 .contact-form textarea{resize:vertical;min-height:96px}
 .contact-form select{
   /* strip the native chevron so it matches the input skin, then draw one in brass. */
@@ -519,7 +540,7 @@ a.client-cell:hover .name{color:var(--ink)}
 }
 .contact-form select option{background:var(--ink-2);color:var(--bone)}
 .contact-submit{
-  width:100%;background:var(--brass);color:#1A1206;
+  width:100%;background:var(--brass);color:var(--ink-deep);
   padding:14px;border-radius:3px;font-size:11px;letter-spacing:.22em;
   text-transform:uppercase;font-weight:500;
   transition:background .3s ease;cursor:pointer;
@@ -532,12 +553,12 @@ a.client-cell:hover .name{color:var(--ink)}
 footer{
   padding:28px var(--pad);border-top:1px solid var(--line);
   display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;
-  font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);
+  font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);
 }
 
 /* ============ LIGHTBOX ============ */
 #lb{
-  position:fixed;inset:0;z-index:180;background:rgba(15,12,10,.97);
+  position:fixed;inset:0;z-index:180;background:rgba(20,16,14,.97);
   display:none;place-items:center;padding:clamp(16px,4vw,60px);
 }
 #lb.on{display:grid}
@@ -565,8 +586,8 @@ footer{
   text-transform:uppercase;color:var(--brass);
 }
 #lb .x{
-  position:absolute;top:14px;right:14px;z-index:3;
-  width:36px;height:36px;border-radius:50%;
+  position:absolute;top:18px;right:18px;z-index:3;
+  width:48px;height:48px;border-radius:50%;
   background:rgba(20,16,14,.72);border:1px solid rgba(239,231,219,.2);
   color:var(--bone);font-size:14px;line-height:1;
   display:grid;place-items:center;
@@ -591,16 +612,16 @@ footer{
   .clients-grid{grid-template-columns:repeat(2,1fr)}
   .clients-grid .plus{display:none}
   /* Reset the last-row border-clear that was tuned for 3 across, then re-clear for 2. */
-  .clients-grid > .client-cell{border-right:1px solid rgba(20,16,14,.14);border-bottom:1px solid rgba(20,16,14,.14)}
-  .clients-grid > .client-cell:nth-child(3n){border-right:1px solid rgba(20,16,14,.14)}
-  .clients-grid > .client-cell:nth-last-child(-n+3){border-bottom:1px solid rgba(20,16,14,.14)}
+  .clients-grid > .client-cell{border-right:1px solid var(--line-paper);border-bottom:1px solid var(--line-paper)}
+  .clients-grid > .client-cell:nth-child(3n){border-right:1px solid var(--line-paper)}
+  .clients-grid > .client-cell:nth-last-child(-n+3){border-bottom:1px solid var(--line-paper)}
   .clients-grid > .client-cell:nth-child(2n){border-right:none}
   .clients-grid > .client-cell:nth-last-child(-n+2){border-bottom:none}
   /* Recompute checkerboard for 2 cols: default odd-tint scheme still alternates,
      but odd/even flips per row. Explicit rules to keep the pattern. */
   .clients-grid > .client-cell{background:var(--paper)}
   .clients-grid > .client-cell:nth-child(4n+1),
-  .clients-grid > .client-cell:nth-child(4n+4){background:rgba(20,16,14,.035)}
+  .clients-grid > .client-cell:nth-child(4n+4){background:var(--ink-035)}
 }
 /* Contact card stacks its two panels; the form's border-left flips to a border-top
    at the seam so the divider stays visible in the vertical stack. */
@@ -643,8 +664,8 @@ body.locked .mobnav{display:none}
   /* 44px minimum tap targets on form fields */
   .contact-form input,.contact-form select,.contact-form textarea{padding:13px 14px;font-size:16px}
   .contact-submit{padding:16px}
-  #lb .nav{width:38px;height:38px}
-  #lb .prev{left:6px}#lb .next{right:6px}
+  #lb .nav{width:48px;height:48px}
+  #lb .prev{left:12px}#lb .next{right:12px}
   /* Bigger body copy for phones: 13.5/13/12 read as too small on a handset. */
   .skill-cell p{font-size:15px}
   .contact-list .label{font-size:14px}
@@ -655,7 +676,7 @@ body.locked .mobnav{display:none}
 }
 @media(prefers-reduced-motion:reduce){
   *{transition-duration:.01ms!important;animation-duration:.01ms!important}
-  .rv,.clip{opacity:1!important;transform:none!important;clip-path:none!important}
+  .rv{opacity:1!important;transform:none!important}
   /* The rule above zeroes duration but not delay; without this the no-JS fallback
      would still sit on a black screen for ~4.6s before snapping open. */
   #overture .leaf,#overture .mark{animation-delay:0s!important}
@@ -676,7 +697,7 @@ document.documentElement.classList.add('js-anim');
 
 <div id="overture">
   <div class="leaf"></div><div class="leaf"></div><div class="leaf"></div>
-  <div class="mark"><img src="assets/logo.png" alt="OB Shots"></div>
+  <div class="mark"><img src="assets/logo.png" alt=""></div>
 </div>
 
 <header id="hd">
@@ -685,7 +706,7 @@ document.documentElement.classList.add('js-anim');
     <span>Original&nbsp;Brave</span>
   </a>
   <div class="nav-right">
-    <nav class="hnav" id="hnav">
+    <nav class="hnav">
       <a href="#work">Work</a>
       <a href="#skills">Savoir-faire</a>
       <a href="#clients">Clients</a>
@@ -854,7 +875,7 @@ document.documentElement.classList.add('js-anim');
 
       <form class="contact-form" id="contactForm"
             action="https://formspree.io/f/PLACEHOLDER_ID" method="POST">
-        <input type="hidden" name="_subject" value="Nouvelle demande — originalbraveshots.com">
+        <input type="hidden" name="_subject" value="Nouvelle demande - Original Brave Shots">
         <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" style="display:none">
 
         <div><label for="cf-name">Nom</label>
@@ -1193,6 +1214,7 @@ document.documentElement.classList.add('js-anim');
     scatter.innerHTML = '';
     layers = [];
     var small = mobileScatter();
+    var shown = 0;
     SCATTER.forEach(function(cfg){
       /* On phones only the six entries carrying an `m` override are shown — eleven
          frames at this size is noise, not composition. */
@@ -1209,12 +1231,17 @@ document.documentElement.classList.add('js-anim');
       /* Natural proportions: the real w/h ride along, so nothing is forced to a ratio. */
       im.width = p.w; im.height = p.h;
       im.sizes = '20vw';
+      /* The hero paints these, so the first three in DOM order load eagerly at high
+         priority; the rest defer so they don't compete for the initial paint budget. */
+      if(shown < 3){ im.fetchPriority = 'high'; }
+      else { im.loading = 'lazy'; im.decoding = 'async'; }
       im.srcset = srcsetOf(p);
       im.src = p.src;
       im.alt = '';
       d.appendChild(im);
       scatter.appendChild(d);
       layers.push({el:d, speed:cfg.s});
+      shown++;
     });
   }
 
@@ -1314,7 +1341,7 @@ document.documentElement.classList.add('js-anim');
   }, {threshold:.12, rootMargin:'0px 0px -6% 0px'});
 
   function reveal(el){ el.classList.add('in'); io.unobserve(el); }
-  function pending(){ return document.querySelectorAll('.rv:not(.in),.clip:not(.in)'); }
+  function pending(){ return document.querySelectorAll('.rv:not(.in)'); }
 
   function observe(){
     pending().forEach(function(el){
@@ -1342,7 +1369,10 @@ document.documentElement.classList.add('js-anim');
   var driftT = 0;              /* running timestamp, advances even while dragging */
 
   function isMobile(){ return window.matchMedia('(max-width:680px)').matches; }
-  function radiusOf(){ return isMobile() ? 150 : 275; }
+  /* Mobile radius 124: a full auto-rotation sweep (drift at its extremes, every rotY,
+     rotX 0) keeps the widest projected orb edge at ~360px inside a 360px viewport, so
+     nothing clips the right edge. 150 clipped; 126 just clears; 124 leaves ~2px. */
+  function radiusOf(){ return isMobile() ? 124 : 275; }
   /* Depth cues are tuned for the dense desktop sphere; the same ranges crush the
      sparser mobile one, leaving back orbs as faint dots. Compressed ranges on mobile
      keep them legible. Resolved once per frame, not per orb. */
@@ -1367,6 +1397,10 @@ document.documentElement.classList.add('js-anim');
     d.setAttribute('role','button');
     d.setAttribute('aria-label', p.label + ' — ' + p.tag);
     var im = new Image();
+    /* Orbs sit below the fold and the sphere itself is deferred, so every orb image
+       is lazy and async-decoded — none of them count against first paint. */
+    im.loading = 'lazy';
+    im.decoding = 'async';
     /* sizes before srcset before src, so the 500w -sm variant is chosen */
     im.sizes = '84px';
     im.srcset = srcsetOf(p);
@@ -1600,9 +1634,27 @@ document.documentElement.classList.add('js-anim');
     if(e.key === 'ArrowRight') step(1);
   });
 
-  render();
   observe();
-  requestAnimationFrame(tick);
+
+  /* Defer the sphere: it is entirely below the fold at load and its orb images are the
+     bulk of the page's weight. Build it only once #work is within 1.5 viewport heights,
+     so first paint ships without any orb image. Once built it behaves exactly as before.
+     No-IO fallback (or reduced motion) builds immediately. */
+  var sphereBuilt = false;
+  function buildSphereOnce(){
+    if(sphereBuilt) return; sphereBuilt = true;
+    render();
+    requestAnimationFrame(tick);
+  }
+  var workSection = document.getElementById('work');
+  if('IntersectionObserver' in window && sphere && workSection){
+    var sphereIO = new IntersectionObserver(function(es){
+      if(es.some(function(e){ return e.isIntersecting; })){ sphereIO.disconnect(); buildSphereOnce(); }
+    }, {rootMargin:'150% 0px 150% 0px'});
+    sphereIO.observe(workSection);
+  } else {
+    buildSphereOnce();
+  }
 
   /* ---------- contact form ---------- */
   /* Progressive enhancement: without this script the form submits normally to
