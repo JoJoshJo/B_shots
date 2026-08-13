@@ -1149,18 +1149,23 @@ document.documentElement.classList.add('js-anim');
 
   /* left/top/width are percentages of the hero box; speed is the parallax rate.
      Speeds alternate fast/slow down the list so neighbours separate as you scroll. */
+  /* Positions solved by measurement, not by eye: an offline solver placed the photos
+     in X-disjoint columns (fast-parallax photo on top of each column so a pair
+     separates rather than converges as it scrolls) and verified across the full
+     parallax sweep that no two photos, nor any photo and the header/wordmark, come
+     within the minimum gap. See STEP 3 verification. Speeds are unchanged. */
   var SCATTER = [
-    {id:'p23', l:-4,  t:2,  w:15, s:0.30, m:{l:-6,  t:4,  w:30}},
-    {id:'p19', l:17,  t:-5, w:19, s:0.52, m:{l:52,  t:9,  w:34}},
-    {id:'p24', l:66,  t:6,  w:14, s:0.18, m:{l:6,   t:26, w:26}},
-    {id:'p07', l:86,  t:18, w:16, s:0.45, m:null},
-    {id:'p10', l:2,   t:44, w:13, s:0.24, m:{l:66,  t:58, w:28}},
-    {id:'p13', l:88,  t:46, w:15, s:0.58, m:null},
-    {id:'p21', l:17,  t:62, w:19, s:0.16, m:{l:-5,  t:66, w:32}},
-    {id:'p06', l:68,  t:62, w:16, s:0.40, m:null},
-    {id:'p22', l:-3,  t:78, w:14, s:0.55, m:null},
-    {id:'p15', l:44,  t:82, w:13, s:0.22, m:{l:58,  t:76, w:27}},
-    {id:'p12', l:84,  t:80, w:15, s:0.36, m:null}
+    {id:'p23', l:-5.2, t:64.9, w:14.1, s:0.30, m:{l:36.4,  t:8.1,  w:26.9}},
+    {id:'p19', l:33.4, t:-5.8, w:13.8, s:0.52, m:{l:-11.5, t:9.0,  w:32.4}},
+    {id:'p24', l:53.1, t:77.1, w:14.6, s:0.18, m:{l:35.2,  t:80.3, w:30.5}},
+    {id:'p07', l:54.9, t:-8.7, w:13.4, s:0.45, m:null},
+    {id:'p10', l:13.7, t:79.9, w:13.8, s:0.24, m:{l:83.3,  t:-8.2, w:30.0}},
+    {id:'p13', l:-5.2, t:7.9,  w:13.8, s:0.58, m:null},
+    {id:'p21', l:73.5, t:78.9, w:15.2, s:0.16, m:{l:-11.5, t:81.7, w:28.6}},
+    {id:'p06', l:73.5, t:8.7,  w:15.0, s:0.40, m:null},
+    {id:'p22', l:15.1, t:7.0,  w:13.9, s:0.55, m:null},
+    {id:'p15', l:33.6, t:79.5, w:14.5, s:0.22, m:{l:80.5,  t:82.6, w:32.8}},
+    {id:'p12', l:93.4, t:42.1, w:15.0, s:0.36, m:null}
   ];
   var WORDMARK_SPEED = 0.08;      /* slowest, so the wordmark lags behind the photos */
 
